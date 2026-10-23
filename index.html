@@ -21,13 +21,16 @@
   a.btn.star{background:linear-gradient(135deg,#daa64e,#e8b856);color:#1a1000;border-color:#e8b856}
   a.btn.star:hover,a.btn.star:active{background:linear-gradient(135deg,#e8b856,#f4d27a)}
   .ico{margin-right:9px}
-  .card3d{margin:26px auto 6px;width:262px;height:150px;border-radius:12px;background:linear-gradient(135deg,#0b0b0b,#1d1506 60%,#0b0b0b);
-    border:1px solid #443319;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.7)}
-  .card3d .inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
-  .card3d img{width:56px}
-  .card3d .t1{color:#fff;font-size:13px;font-weight:900;letter-spacing:1.5px;margin-top:4px}
-  .card3d .t2{font-family:'Great Vibes',cursive;color:#e8b856;font-size:13px}
-  .card3d .sv{position:absolute;bottom:7px;color:#888;font-size:8.5px;letter-spacing:.5px;font-family:Georgia,serif}
+  .card3d{margin:26px auto 6px;width:300px;height:170px;border-radius:12px;background:#050505;
+    border:2px solid #2c2115;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.7)}
+  .card3d .t1{color:#fff;font-size:20px;font-weight:900;letter-spacing:2px;position:absolute;top:26px;left:0;right:0;text-align:center;font-family:'Simonetta',serif}
+  .card3d .t2{font-family:'Great Vibes',cursive;color:#e8b856;font-size:16px;position:absolute;top:64px;left:0;right:0;text-align:center}
+  .card3d .div{position:absolute;top:96px;left:30%;right:30%;height:1px;background:#daa64e}
+  .card3d .sv{position:absolute;top:112px;left:0;right:0;color:#fff;font-size:9.5px;letter-spacing:.8px;font-family:Georgia,serif;text-align:center}
+  .card3d .sl{position:absolute;top:132px;left:0;right:0;color:#96968c;font-size:7.5px;font-family:Georgia,serif;text-align:center}
+  .card3d .nfctag{position:absolute;bottom:6px;right:10px;color:#e8b856;font-size:9px;font-family:Georgia,serif}
+  .card3d.back{display:flex;align-items:center;justify-content:center}
+  .card3d.back img{width:110px;margin-top:8px}
   .caption{color:#6b7385;font-size:10.5px;margin-top:10px;letter-spacing:.5px}
   .foot{color:#6b7385;font-size:11px;margin-top:24px;font-family:Georgia,serif}
 </style></head><body><div class="wrap">
@@ -46,14 +49,19 @@
   <a class="btn" href="https://maps.google.com/?cid=2185886682577761685" target="_blank"><span class="ico">📍</span>Encuéntranos en Maps</a>
 
   <div class="card3d">
-    <div class="inner">
-      <img src="logo_diamante.png" alt="">
-      <div class="t1">MEN'S LINE</div>
-      <div class="t2">Professional Studio</div>
-    </div>
-    <div class="sv">BARBERÍA PRIVADA&nbsp;·&nbsp;FISIOTERAPIA&nbsp;·&nbsp;NAILS</div>
+    <div class="t1">MEN'S LINE</div>
+    <div class="t2">Professional Studio</div>
+    <div class="div"></div>
+    <div class="sv">BARBERÍA PRIVADA&nbsp;&nbsp;&nbsp;FISIOTERAPIA&nbsp;&nbsp;&nbsp;NAILS</div>
+    <div class="sl">"REDEFINIMOS LA EXPERIENCIA DE IMAGEN Y BIENESTAR"</div>
+    <div class="nfctag">NFC ◆</div>
   </div>
-  <p class="caption">MUESTRA DE LA TARJETA — FRENTE</p>
+  <p class="caption">TARJETA — FRENTE</p>
+
+  <div class="card3d back" style="margin-top:18px">
+    <img src="logo_diamante.png" alt="diamante">
+  </div>
+  <p class="caption">TARJETA — REVERSO</p>
 
   <p class="foot">MEN'S LINE Professional Studio · La Hacienda, Cali</p>
 </div></body></html>
