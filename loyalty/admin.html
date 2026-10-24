@@ -16,11 +16,12 @@ h1{font-size:1.2rem;letter-spacing:.1em;color:var(--goldl)}
 input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
 input:focus{outline:none;border-color:var(--gold)}
 button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;cursor:pointer;margin-bottom:8px}
-.ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600}
+.ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600;font-size:.88rem;padding:11px}
 .err{color:#e98a7a;font-size:.85rem;min-height:1.2em}
 .ok{color:#8fd48f;font-size:.85rem}
 #list{width:100%;font-size:.9rem}
 #list div{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid #4a3013}
+.mini{font-size:.75rem;color:var(--mut)}
 </style>
 </head>
 <body>
@@ -28,7 +29,7 @@ button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gra
   <h1>MENS<b>LINE</b> — PANEL DIAMANTE</h1>
 
   <div class="card" id="lockCard">
-    <p class="mut" style="margin-bottom:10px; font-size:.85rem">Solo el personal del negocio entra aquí.<br>Se pide un PIN para que un cliente no pueda sumarse diamantes a sí mismo.</p>
+    <p class="mut" style="margin-bottom:10px; font-size:.85rem">Solo el personal del negocio entra aquí.<br>El PIN evita que un cliente se sume diamantes él mismo.</p>
     <input id="pin" type="password" inputmode="numeric" placeholder="PIN del negocio">
     <button id="unlock">ENTRAR</button>
     <p id="lockMsg" class="err"></p>
@@ -37,17 +38,19 @@ button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gra
   <div class="card hidden" id="panel">
     <p class="mut" style="margin-bottom:10px">Celular del cliente (el que se registró)</p>
     <input id="phone" type="tel" inputmode="numeric" placeholder="Celular del cliente">
-    <button id="stampBtn">💎 SUMAR DIAMANTE</button>
-    <button id="redeemBtn" class="ghost">Entregar recompensa → nuevo ciclo</button>
-    <button id="listBtn" class="ghost">Ver todos los clientes</button>
+    <button id="stampBtn">💎 SUMAR DIAMANTE (extra / corrección)</button>
+    <button id="redeemBtn" class="ghost">🎁 Entregar recompensa → nuevo ciclo</button>
+    <button id="resetBtn" class="ghost">↩️ Reiniciar ciclo sin entregar recompensa</button>
+    <button id="listBtn" class="ghost">🔄 Ver todos los clientes</button>
     <div id="list" style="margin-top:12px"></div>
+    <p class="mini" style="margin-top:8px">Nota: el cliente normalmente gana 1 diamante por día al tocar su tarjeta.<br>Este panel es para sumar de más (gastó 2 veces el mismo día), canjear o corregir.</p>
     <p id="msg" class="err"></p>
   </div>
 
   <div id="demoBanner" class="demo hidden">🔧 MODO PRUEBA — datos guardados en este celular.<br>PIN de prueba: <b>1717</b></div>
 </div>
 <script>
-/* SERVIDOR REAL (cuando conecten el Worker): const API_BASE = "https://mensline-diamond-club.SEBA.workers.dev"; */
+/* SERVIDOR REAL (Worker de Cloudflare): const API_BASE = "https://mensline-diamond-club.XXX.workers.dev"; */
 const API_BASE = null;            // null = MODO PRUEBA local (PIN de prueba: 1717)
 const DEMO_PIN = "1717";
 const GOAL = 5;
@@ -59,40 +62,48 @@ const demoSet = c => localStorage.setItem("ml_demo_client", JSON.stringify(c));
 if (!API_BASE) $("demoBanner").classList.remove("hidden");
 
 $("unlock").onclick = () => {
-  const p = $("pin").value.replace(/\D/g,"");
-  if (API_BASE){ /* servidor real: fetch POST /list con {pin} — pendiente de conectar */ }
-  if (p === DEMO_PIN){ unlockUI(); showList(); } else $("lockMsg").textContent = "PIN incorrecto";
+  if ($("pin").value.replace(/\D/g,"") === DEMO_PIN){ unlockUI(); showList(); } else $("lockMsg").textContent = "PIN incorrecto";
 };
 function unlockUI(){ $("lockCard").classList.add("hidden"); $("panel").classList.remove("hidden"); }
+function findClient(){
+  const c = demoGet();
+  if (!c){ msg("err","No hay cliente registrado"); return null; }
+  if (String(c.phone).slice(-10) !== $("phone").value.replace(/\D/g,"").slice(-10)){ msg("err","El celular no coincide con ningún cliente"); return null; }
+  return c;
+}
 function showList(){
   const c = demoGet();
-  $("list").innerHTML = c ? `<div><span>${c.name}</span><span>${c.rewardPending ? "🎁 listo" : c.stamps + "/" + GOAL}</span></div>` : "<p class='mut'>Aún no hay clientes registrados.</p>";
+  $("list").innerHTML = c ? `<div><span>${c.name}</span><span>${c.rewardPending ? "🎁 listo ("+c.rewardCode+")" : c.stamps + "/" + GOAL}</span></div>` : "<p class='mut'>Aún no hay clientes registrados.</p>";
 }
+/* Suma manual del staff — puede sumar aunque ya tocó hoy (corrección), pero no si tienes recompensa sin canjear */
 $("stampBtn").onclick = () => {
-  const c = demoGet(); if (!c){ msg("err","No hay cliente registrado"); return; }
-  if (c.rewardPending){ msg("err","Ya tiene recompensa por canjear (código " + c.rewardCode + ")"); return; }
-  if (String(c.phone).slice(-10) !== $("phone").value.replace(/\D/g,"").slice(-10)){ msg("err","El celular no coincide con ningún cliente"); return; }
-  c.stamps++;
+  const c = findClient(); if (!c) return;
+  if (c.rewardPending){ msg("err","Tiene recompensa sin canjear (código " + c.rewardCode + "). Canjéala primero."); return; }
+  c.stamps++; c.lastVisit = new Date().toLocaleDateString("sv");
   if (c.stamps >= GOAL){
     c.rewardPending = true; c.rewardCode = String(Math.floor(100000 + Math.random()*900000));
     msg("ok", `¡DIAMANTE #${GOAL}! 🎉 Recompensa activada · Código: ${c.rewardCode}`);
-    notif("💎 ¡Recompensa lista!", "Código: " + c.rewardCode);
   } else {
     msg("ok", `Diamante ${c.stamps}/${GOAL} sumado ✅`);
-    notif("Diamond Club 💎", `Sello ${c.stamps} de ${GOAL} conseguido`);
   }
   demoSet(c); showList();
 };
+/* Canje: congelaba el cliente para siempre — ahora el ciclo REINICIA y puede volver a sumar */
 $("redeemBtn").onclick = () => {
-  const c = demoGet();
-  if (!c || !c.rewardPending){ msg("err","Ese cliente no tiene recompensa pendiente"); return; }
+  const c = findClient(); if (!c) return;
+  if (!c.rewardPending){ msg("err","Ese cliente no tiene recompensa pendiente"); return; }
   c.rewardPending = false; c.rewardCode = null;
+  c.stamps = 0; c.lastVisit = "";            // ← EL FIX: ciclo nuevo desde 0
   demoSet(c);
-  msg("ok","Recompensa entregada ✅ el cliente empieza nuevo ciclo");
+  msg("ok","Recompensa entregada ✅ El cliente empieza nuevo ciclo (0/" + GOAL + ")");
   showList();
 };
+$("resetBtn").onclick = () => {
+  const c = findClient(); if (!c) return;
+  c.stamps = 0; c.rewardPending = false; c.rewardCode = null; c.lastVisit = "";
+  demoSet(c); msg("ok","Ciclo reiniciado a 0/" + GOAL + " (sin entregar recompensa)"); showList();
+};
 function msg(cls, t){ $("msg").className = cls; $("msg").textContent = t; }
-function notif(title, body){ if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body }); }
 </script>
 </body>
 </html>
