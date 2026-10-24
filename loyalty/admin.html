@@ -11,15 +11,15 @@
 body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:14px;align-items:center}
 h1{font-size:1.2rem;letter-spacing:.1em;color:var(--goldl);text-align:center}
-.demo{width:100%;text-align:center;background:#443315;border:1px dashed var(--gold);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--goldl)}
 .card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;width:100%}
 input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
 input:focus{outline:none;border-color:var(--gold)}
 button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;cursor:pointer;margin-bottom:8px}
+button:disabled{opacity:.5;cursor:wait}
 .ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600;font-size:.88rem;padding:11px}
 .err{color:#e98a7a;font-size:.85rem;min-height:1.2em}
 .ok{color:#8fd48f;font-size:.85rem}
-.cl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 6px;border-bottom:1px solid #4a3013;font-size:.9rem}
+.cl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 6px;border-bottom:1px solid #4a3013;font-size:.9rem;cursor:pointer}
 .cl .n{font-weight:700}
 .cl .p{color:var(--mut);font-size:.74rem}
 .mini{font-size:.75rem;color:var(--mut)}
@@ -38,88 +38,98 @@ button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gra
   </div>
 
   <div class="card hidden" id="panel">
-    <p style="font-weight:700;color:var(--goldl);margin-bottom:6px;font-size:.95rem">CLIENTES REGISTRADOS</p>
+    <p style="font-weight:700;color:var(--goldl);margin-bottom:6px;font-size:.95rem">CLIENTES REGISTRADOS <span class="mini">(en vivo, desde la nube)</span></p>
     <div id="list"></div>
     <p id="selInfo" class="mini" style="margin-top:8px">Toca un cliente arriba para seleccionarlo y luego usa los botones.</p>
     <button id="stampBtn" class="ghost" style="margin-top:10px">💎 SUMAR DIAMANTE (al seleccionado)</button>
     <button id="redeemBtn" class="ghost">🎁 Entregar recompensa → ciclo nuevo (0/5)</button>
     <button id="delBtn" class="ghost">🗑️ Eliminar cliente (prueba)</button>
-    <button id="resetBtn" class="ghost">🔄 Borrar TODOS los datos (empezar demo de cero)</button>
-    <p class="mini" style="margin-top:8px">Diamante normal: el CLIENTE lo gana solo tocando su tarjeta (1 por día).<br>Este panel es para correcciones de staff.</p>
+    <button id="wipeBtn" class="ghost">🔄 Borrar TODOS los datos (empezar demo de cero)</button>
+    <p class="mini" style="margin-top:8px">Diamante normal: el CLIENTE lo gana solo tocando su tarjeta (1 por día).<br>Este panel es para correcciones del staff.</p>
     <p id="msg" class="err"></p>
   </div>
-
-  <div class="demo">🔧 MODO PRUEBA (v3) — datos de este dispositivo<br>PIN de prueba: <b>1717</b></div>
 </div>
 <script>
-/* SERVIDOR REAL (fase 2, Cloudflare Worker) — solo cambia API_BASE:
-   const API_BASE = "https://mensline-diamond-club.<tu-subdominio>.workers.dev"; */
-const API_BASE = null;   // null = MODO PRUEBA local (PIN de prueba: 1717)
-const DEMO_PIN = "1717";
+/* ══════ SERVIDOR REAL (Cloudflare) — este panel ve lo mismo que ven los celulares ══════ */
+const API = "https://mensline-diamond-club.santa250613.workers.dev";
 const GOAL = 5;
 const $ = id => document.getElementById(id);
-const all = () => JSON.parse(localStorage.getItem("ml_demo_clients") || "[]");
-const saveAll = a => localStorage.setItem("ml_demo_clients", JSON.stringify(a));
-const samePh = (a,b) => String(a).slice(-10) === String(b).slice(-10);
-let SEL = null;
+let PIN = "", SEL = null, CLIENTS = [];
 
-if (!API_BASE) $("demoBanner") && document.querySelectorAll(".demo")[1] && document.querySelectorAll(".demo")[1].classList.remove("hidden");
+async function api(path, body){
+  const r = await fetch(API + path, { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify(body) });
+  return r.json();
+}
+function msg(cls, t){ $("msg").className = cls; $("msg").textContent = t; }
+function selClient(){
+  if (SEL === null || !CLIENTS[SEL]){ msg("err","Selecciona un cliente de la lista primero"); return null; }
+  return CLIENTS[SEL];
+}
 
-$("unlock").onclick = () => {
-  if ($("pin").value.replace(/\D/g,"") === DEMO_PIN){ $("lockCard").classList.add("hidden"); $("panel").classList.remove("hidden"); showList(); }
-  else $("lockMsg").textContent = "PIN incorrecto";
+$("unlock").onclick = async () => {
+  PIN = $("pin").value.replace(/\D/g,"");
+  $("unlock").disabled = true;
+  const r = await api("/list", { pin: PIN });
+  $("unlock").disabled = false;
+  if (r.ok){ $("lockCard").classList.add("hidden"); $("panel").classList.remove("hidden"); CLIENTS = r.clients; showList(); refresh(); }
+  else $("lockMsg").textContent = r.err || "PIN incorrecto";
 };
 
-function msg(cls, t){ $("msg").className = cls; $("msg").textContent = t; }
-
 function showList(){
-  const a = all();
-  if (!a.length){ $("list").innerHTML = "<p class='mini'>Aún no hay clientes. Regístralos desde la app (pantalla principal).</p>"; return; }
-  $("list").innerHTML = a.map((c,i) =>
+  if (!CLIENTS.length){ $("list").innerHTML = "<p class='mini'>Aún no hay clientes. Se registran desde la app (tocando la tarjeta NFC).</p>"; return; }
+  $("list").innerHTML = CLIENTS.map((c,i) =>
     `<div class="cl${SEL===i?' sel':''}" data-i="${i}">
        <span><span class="n">${c.name}</span><br><span class="p">#${String(c.phone).slice(-10)}</span></span>
        <span style="text-align:right">${c.rewardPending
          ? `<b style="color:#e8b856">🎁 RECOMPENSA LISTA</b><br><span class="p">código ${c.rewardCode}</span>`
          : `<b>${"·".repeat(c.stamps)}${"◇".repeat(GOAL-c.stamps)}</b><br><span class="p">${c.stamps}/${GOAL} · última visita: ${c.lastVisit || "—"}</span>`}</span>
      </div>`).join("");
-  document.querySelectorAll(".cl").forEach(el => el.onclick = () => { SEL = +el.dataset.i; showList(); msg("ok","Seleccionado: " + all()[SEL].name); });
+  document.querySelectorAll(".cl").forEach(el => el.onclick = () => { SEL = +el.dataset.i; showList(); msg("ok","Seleccionado: " + CLIENTS[SEL].name); });
 }
+function updSel(cc){ CLIENTS[SEL] = cc; showList(); }
 
-function selClient(){
-  if (SEL === null || !all()[SEL]){ msg("err","Selecciona un cliente de la lista primero"); return null; }
-  return all()[SEL];
+/* refresco automático cada 5 s: si un cliente se registra o toca su tarjeta, aparece solo */
+async function refresh(){
+  if (!PIN) return;
+  const r = await api("/list", { pin: PIN });
+  if (!r.ok) return;
+  const same = JSON.stringify(CLIENTS) === JSON.stringify(r.clients);
+  CLIENTS = r.clients; SEL = null;
+  showList();
+  if (!same) msg("ok","🔄 Lista actualizada desde la nube");
 }
-function saveSel(cc){ const a = all(); a[SEL] = cc; saveAll(a); showList(); }
+setInterval(refresh, 5000);
 
-$("stampBtn").onclick = () => {
+$("stampBtn").onclick = async () => {
   const c = selClient(); if (!c) return;
-  if (c.rewardPending){ msg("err","Tiene recompensa sin canjear (código " + c.rewardCode + "). Entregala primero 🎁"); return; }
-  c.stamps++;
-  if (c.stamps >= GOAL){
-    c.rewardPending = true; c.rewardCode = String(Math.floor(100000 + Math.random()*900000));
-    msg("ok", `¡DIAMANTE #${GOAL}! 🎉 Recompensa activada · Código: ${c.rewardCode} → ahora "Entregar recompensa"`);
-  } else { msg("ok", `Diamante sumado: ${c.name} ahora ${c.stamps}/${GOAL} ✅`); }
-  saveSel(c);
+  $("stampBtn").disabled = true;
+  const r = await api("/stamp", { pin: PIN, phone: c.phone });
+  $("stampBtn").disabled = false;
+  if (!r.ok){ msg("err", r.err || "Error"); return; }
+  updSel(r.client);
+  msg("ok", r.reward
+    ? `¡DIAMANTE #${GOAL}! 🎉 Recompensa activada · Código: ${r.client.rewardCode} → ahora "Entregar recompensa"`
+    : `Diamante sumado: ${r.client.name} ahora ${r.client.stamps}/${GOAL} ✅`);
 };
 
-$("redeemBtn").onclick = () => {
+$("redeemBtn").onclick = async () => {
   const c = selClient(); if (!c) return;
-  if (!c.rewardPending){ msg("err","Ese cliente no tiene recompensa pendiente (llega a 5/5 primero)"); return; }
-  c.rewardPending = false; c.rewardCode = null; c.stamps = 0; c.lastVisit = "";
-  saveSel(c);
+  $("redeemBtn").disabled = true;
+  const r = await api("/redeem", { pin: PIN, phone: c.phone });
+  $("redeemBtn").disabled = false;
+  if (!r.ok){ msg("err", r.err || "Error"); return; }
+  updSel(r.client);
   msg("ok","Recompensa entregada ✅ El cliente empieza ciclo nuevo (0/5). Pídele que toque su tarjeta.");
 };
 
-$("delBtn").onclick = () => {
-  const c = selClient(); if (!c) return;
-  if (confirm("¿Eliminar a " + c.name + " de la lista?")){ saveAll(all().filter((_,i)=>i!==SEL)); SEL = null; showList(); msg("ok","Cliente eliminado"); }
-};
+$("delBtn").onclick = () => msg("err","Eliminar cliente individual llega en la versión de pago; por ahora usa 'Borrar TODO' (solo demo).");
 
-$("resetBtn").onclick = () => {
-  if (confirm("¿Borrar TODOS los clientes y empezar la demo de cero?")){ saveAll([]); SEL = null; showList(); msg("ok","Todo borrado. La demo empieza limpia."); }
+$("wipeBtn").onclick = async () => {
+  if (!confirm("¿Borrar TODOS los clientes y empezar la demo de cero?")) return;
+  const r = await api("/wipe", { pin: PIN });
+  if (r.ok){ SEL = null; await refresh(); msg("ok","Todo borrado. La demo empieza limpia."); }
+  else msg("err", r.err || "Error");
 };
-
-function msg(cls,t){ $("msg").className = cls; $("msg").textContent = t; }
 </script>
 </body>
 </html>
