@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="theme-color" content="#2b1c10">
+<title>MensLine Diamond Club</title>
+<link rel="manifest" href="/loyalty/manifest.webmanifest">
+<link rel="icon" href="/loyalty/logo_diamante.png">
+<style>
+:root{--bg:#23150b;--gold:#daa64e;--goldl:#e8b856;--txt:#f4ead9;--mut:#b39b78}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
+body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:16px;align-items:center}
+.logo{width:96px;margin-top:8px}
+h1{font-size:1.5rem;letter-spacing:.12em;color:var(--goldl);text-transform:uppercase}
+h1 b{color:#fff}
+.sub{color:var(--mut);font-size:.88rem;text-align:center}
+.demo{width:100%;text-align:center;background:#443315;border:1px dashed var(--gold);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--goldl)}
+.card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;width:100%;box-shadow:0 8px 30px #0008}
+.dm{width:52px;height:52px}
+.dm.earned{filter:drop-shadow(0 3px 8px #daa64e88);animation:pop .5s ease}
+@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.35)}100%{transform:scale(1)}}
+.diamonds{display:flex;justify-content:center;gap:10px;margin:18px 0 10px}
+.prog{margin-top:8px;font-weight:600;color:var(--goldl);text-align:center;letter-spacing:.04em}
+.bar{height:7px;background:#1c1108;border-radius:99px;overflow:hidden;margin-top:12px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--goldl));border-radius:99px;transition:width .6s ease}
+input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
+input:focus{outline:none;border-color:var(--gold)}
+button{width:100%;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;font-size:1rem;letter-spacing:.05em;cursor:pointer}
+button:active{transform:scale(.98)}
+.ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600;margin-top:8px}
+.reward{text-align:center;padding:18px;border:2px solid var(--gold);border-radius:16px;background:#2b1b0c;margin-top:6px}
+.reward h2{color:var(--goldl);font-size:1.1rem;letter-spacing:.08em}
+.reward code{display:block;font-size:2rem;letter-spacing:.35em;color:#fff;margin:10px 0;font-family:monospace}
+.mut{color:var(--mut);font-size:.85rem}
+.center{text-align:center}
+.hidden{display:none!important}
+#admLink{color:var(--mut);font-size:.78rem;margin-top:18px;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <img class="logo" src="/loyalty/logo_diamante.png" alt="">
+  <h1>Mens<b>Line</b> Diamond Club</h1>
+  <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
+  <div id="demoBanner" class="demo hidden">🔧 MODO PRUEBA (el servidor del negocio no está conectado todavía;<br>todo se guarda en este celular — perfecto para ver cómo funciona)</div>
+
+  <div id="regView" class="card hidden">
+    <p class="center mut" style="margin-bottom:14px">Regístrate una sola vez para ganar diamantes con cada servicio:</p>
+    <input id="regName" type="text" placeholder="Tu nombre" maxlength="30">
+    <input id="regPhone" type="tel" inputmode="numeric" placeholder="Tu celular (WhatsApp)" maxlength="12">
+    <button id="regBtn">COMENZAR MIS DIAMANTES</button>
+    <p id="regMsg" class="mut center" style="margin-top:10px"></p>
+  </div>
+
+  <div id="stView" class="card hidden">
+    <p class="sub" id="hello"></p>
+    <div class="diamonds" id="dmRow"></div>
+    <p class="prog" id="prog"></p>
+    <div class="bar"><i id="barFill" style="width:0%"></i></div>
+    <div id="rewardBox" class="reward hidden">
+      <h2>💎 ¡RECOMPENSA LISTA!</h2>
+      <code id="rewardCode"></code>
+      <p class="mut">Preséntale este código en recepción</p>
+    </div>
+  </div>
+
+  <button class="ghost hidden" id="addBtn">📲 Guardar en inicio (para recibir avisos)</button>
+  <button class="ghost hidden" id="notifBtn">🔔 Activar notificaciones</button>
+  <a id="admLink" href="/loyalty/admin.html">Acceso del negocio 🔒</a>
+</div>
+
+<script>
+/* SERVIDOR REAL (cuando conecten el Worker de Cloudflare, cambiar la URL):
+   const API_BASE = "https://mensline-diamond-club.SEBA.workers.dev"; */
+const API_BASE = null;            // null = MODO PRUEBA local (sin servidor)
+const GOAL = 5;
+const $ = id => document.getElementById(id);
+const DM = earned => `<svg class="dm ${earned?'earned':''}" viewBox="0 0 64 64">
+ ${earned
+   ? '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8b856"/><stop offset="1" stop-color="#b8862f"/></linearGradient></defs><g fill="url(#g)" stroke="#fbe7b8" stroke-width="1.5"><path d="M32 2 14 18 32 60 50 18z"/><path d="M14 18h36L32 60z" fill="#f3d38c" opacity=".55"/></g>'
+   : '<g fill="none" stroke="#7a5c30" stroke-width="2.5" opacity=".85"><path d="M32 2 14 18 32 60 50 18z"/><path d="M14 18h36M32 2 18 18 32 60M32 2 46 18 32 60" stroke-width="1.4" opacity=".5"/></g>'}
+</svg>`;
+
+/* ---------- modo prueba (localStorage) ---------- */
+const demoGet = () => JSON.parse(localStorage.getItem("ml_demo_client") || "null");
+const demoSet = c => localStorage.setItem("ml_demo_client", JSON.stringify(c));
+
+function render(c){
+  $("stView").classList.remove("hidden");
+  $("regView").classList.add("hidden");
+  const pending = !!c.rewardPending;
+  const s = pending ? GOAL : (c.stamps % GOAL);
+  $("hello").textContent = `Hola, ${c.name} · Membresía #${String(c.phone).slice(-4)}`;
+  $("dmRow").innerHTML = Array.from({length:GOAL},(_,i)=>DM(i<s)).join("");
+  if (pending){
+    $("prog").textContent = "CICLO COMPLETO 💎";
+    $("barFill").style.width = "100%";
+    $("rewardBox").classList.remove("hidden");
+    $("rewardCode").textContent = c.rewardCode;
+  } else {
+    $("prog").textContent = `${s} de ${GOAL} diamantes`;
+    $("barFill").style.width = (s/GOAL*100) + "%";
+    $("rewardBox").classList.add("hidden");
+  }
+  $("addBtn").classList.remove("hidden");
+  if ("Notification" in window && Notification.permission === "default")
+    $("notifBtn").classList.remove("hidden");
+}
+function showDemoBanner(){ $("demoBanner").classList.remove("hidden"); }
+
+/* ---------- arranque ---------- */
+if (!API_BASE) showDemoBanner();
+const local = demoGet();
+if (local) render(local);
+else $("regView").classList.remove("hidden");
+
+$("regBtn").onclick = () => {
+  const name = $("regName").value.trim();
+  const phone = $("regPhone").value.replace(/\D/g,"");
+  if (!name || phone.length < 7){ $("regMsg").textContent = "Completa nombre y celular"; return; }
+  const c = { name, phone, stamps: 0, rewardPending: false, rewardCode: null };
+  if (API_BASE){ /* servidor real: fetch POST /register — pendiente de conectar */ }
+  demoSet(c); $("regMsg").textContent = "¡Listo! Ya eres parte del Diamond Club";
+  setTimeout(()=>render(c), 400);
+};
+$("addBtn").onclick = () => alert("En iPhone: Compartir → Añadir a pantalla de inicio.\nEn Android: menú ⋮ → Instalar aplicación.");
+$("notifBtn").onclick = async () => { if (await Notification.requestPermission() === "granted") $("notifBtn").classList.add("hidden"); };
+</script>
+</body>
+</html>

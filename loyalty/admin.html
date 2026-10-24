@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>MensLine — Panel</title>
+<style>
+:root{--bg:#23150b;--gold:#daa64e;--goldl:#e8b856;--txt:#f4ead9;--mut:#b39b78}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
+body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
+.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:14px;align-items:center}
+h1{font-size:1.2rem;letter-spacing:.1em;color:var(--goldl)}
+.demo{width:100%;text-align:center;background:#443315;border:1px dashed var(--gold);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--goldl)}
+.card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;width:100%}
+input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
+input:focus{outline:none;border-color:var(--gold)}
+button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;cursor:pointer;margin-bottom:8px}
+.ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600}
+.err{color:#e98a7a;font-size:.85rem;min-height:1.2em}
+.ok{color:#8fd48f;font-size:.85rem}
+#list{width:100%;font-size:.9rem}
+#list div{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid #4a3013}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>MENS<b>LINE</b> — PANEL DIAMANTE</h1>
+
+  <div class="card" id="lockCard">
+    <p class="mut" style="margin-bottom:10px; font-size:.85rem">Solo el personal del negocio entra aquí.<br>Se pide un PIN para que un cliente no pueda sumarse diamantes a sí mismo.</p>
+    <input id="pin" type="password" inputmode="numeric" placeholder="PIN del negocio">
+    <button id="unlock">ENTRAR</button>
+    <p id="lockMsg" class="err"></p>
+  </div>
+
+  <div class="card hidden" id="panel">
+    <p class="mut" style="margin-bottom:10px">Celular del cliente (el que se registró)</p>
+    <input id="phone" type="tel" inputmode="numeric" placeholder="Celular del cliente">
+    <button id="stampBtn">💎 SUMAR DIAMANTE</button>
+    <button id="redeemBtn" class="ghost">Entregar recompensa → nuevo ciclo</button>
+    <button id="listBtn" class="ghost">Ver todos los clientes</button>
+    <div id="list" style="margin-top:12px"></div>
+    <p id="msg" class="err"></p>
+  </div>
+
+  <div id="demoBanner" class="demo hidden">🔧 MODO PRUEBA — datos guardados en este celular.<br>PIN de prueba: <b>1717</b></div>
+</div>
+<script>
+/* SERVIDOR REAL (cuando conecten el Worker): const API_BASE = "https://mensline-diamond-club.SEBA.workers.dev"; */
+const API_BASE = null;            // null = MODO PRUEBA local (PIN de prueba: 1717)
+const DEMO_PIN = "1717";
+const GOAL = 5;
+const $ = id => document.getElementById(id);
+
+const demoGet = () => JSON.parse(localStorage.getItem("ml_demo_client") || "null");
+const demoSet = c => localStorage.setItem("ml_demo_client", JSON.stringify(c));
+
+if (!API_BASE) $("demoBanner").classList.remove("hidden");
+
+$("unlock").onclick = () => {
+  const p = $("pin").value.replace(/\D/g,"");
+  if (API_BASE){ /* servidor real: fetch POST /list con {pin} — pendiente de conectar */ }
+  if (p === DEMO_PIN){ unlockUI(); showList(); } else $("lockMsg").textContent = "PIN incorrecto";
+};
+function unlockUI(){ $("lockCard").classList.add("hidden"); $("panel").classList.remove("hidden"); }
+function showList(){
+  const c = demoGet();
+  $("list").innerHTML = c ? `<div><span>${c.name}</span><span>${c.rewardPending ? "🎁 listo" : c.stamps + "/" + GOAL}</span></div>` : "<p class='mut'>Aún no hay clientes registrados.</p>";
+}
+$("stampBtn").onclick = () => {
+  const c = demoGet(); if (!c){ msg("err","No hay cliente registrado"); return; }
+  if (c.rewardPending){ msg("err","Ya tiene recompensa por canjear (código " + c.rewardCode + ")"); return; }
+  if (String(c.phone).slice(-10) !== $("phone").value.replace(/\D/g,"").slice(-10)){ msg("err","El celular no coincide con ningún cliente"); return; }
+  c.stamps++;
+  if (c.stamps >= GOAL){
+    c.rewardPending = true; c.rewardCode = String(Math.floor(100000 + Math.random()*900000));
+    msg("ok", `¡DIAMANTE #${GOAL}! 🎉 Recompensa activada · Código: ${c.rewardCode}`);
+    notif("💎 ¡Recompensa lista!", "Código: " + c.rewardCode);
+  } else {
+    msg("ok", `Diamante ${c.stamps}/${GOAL} sumado ✅`);
+    notif("Diamond Club 💎", `Sello ${c.stamps} de ${GOAL} conseguido`);
+  }
+  demoSet(c); showList();
+};
+$("redeemBtn").onclick = () => {
+  const c = demoGet();
+  if (!c || !c.rewardPending){ msg("err","Ese cliente no tiene recompensa pendiente"); return; }
+  c.rewardPending = false; c.rewardCode = null;
+  demoSet(c);
+  msg("ok","Recompensa entregada ✅ el cliente empieza nuevo ciclo");
+  showList();
+};
+function msg(cls, t){ $("msg").className = cls; $("msg").textContent = t; }
+function notif(title, body){ if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body }); }
+</script>
+</body>
+</html>
