@@ -117,11 +117,42 @@ function render(c){
 }
 function popIndex(i){ const el = document.querySelectorAll("#dmRow svg")[i]; if (el) el.classList.add("pop"); }
 
+/* ══ EN VIVO: el carnet del cliente se actualiza solo (cada 4 s) cuando el staff
+   suma diamantes, entrega la recompensa o reinicia el ciclo desde el panel ══ */
+let ME = null, lastSig = "";
+const sig = c => [c.stamps, c.rewardPending ? 1 : 0, c.rewardCode || ""].join("|");
+async function live(){
+  if (!ME) return;
+  const s = await api("/status?phone=" + ME.phone);
+  if (!s.ok || !s.client) return;
+  const c = s.client;
+  if (sig(c) !== lastSig){
+    const prev = ME.stamps;
+    ME = c; lastSig = sig(c);
+    render(c);
+    if (c.rewardPending && c.stamps === prev && prev === GOAL){
+      // el staff entregó la recompensa → ciclo nuevo, celebrar el reinicio
+      $("statusMsg").style.color = "#8fd48f";
+      $("statusMsg").textContent = "🎁 Recompensa entregada. ¡A ganar diamantes otra vez!";
+      popIndex(0);
+    } else if (c.stamps > prev){
+      popIndex(c.stamps-1);
+      $("statusMsg").style.color = "#8fd48f";
+      $("statusMsg").textContent = "✨ Diamante " + c.stamps + "/" + GOAL + " registrado por tu visita de hoy";
+    } else if (c.stamps < prev && !c.rewardPending){
+      $("statusMsg").style.color = "#b39b78";
+      $("statusMsg").textContent = "El staff reinició tu ciclo. Empieza de nuevo 💎";
+    }
+  }
+}
+setInterval(live, 4000);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) live(); });
+
 async function boot(){
   const ph = localStorage.getItem("ml_self");
   if (!ph){ $("regView").classList.remove("hidden"); return; }
   const s = await api("/status?phone=" + ph);
-  if (s.ok && s.client){ render(s.client); autoVisit(s.client); }
+  if (s.ok && s.client){ ME = s.client; lastSig = sig(s.client); render(s.client); autoVisit(s.client); }
   else localStorage.removeItem("ml_self");
 }
 /* ⬇️ AUTO: abrir la app (tocar la tarjeta NFC) = +1 diamante, MÁXIMO 1 POR DÍA — lo decide el servidor */
@@ -152,6 +183,7 @@ $("regBtn").onclick = async () => {
   $("regBtn").disabled = false;
   if (!r.ok){ $("regMsg").textContent = r.err || "Error, intenta de nuevo"; return; }
   localStorage.setItem("ml_self", r.client.phone);
+  ME = r.client; lastSig = sig(r.client);
   $("regMsg").textContent = "¡Listo, " + name + "! Ya eres del Diamond Club 💎";
   render(r.client);
   autoVisit(r.client);   // el registro cuenta como la primera visita

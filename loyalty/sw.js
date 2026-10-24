@@ -1,4 +1,4 @@
-const CACHE = "ml-diamond-v4";
+const CACHE = "ml-diamond-v5";
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(["/loyalty/", "/loyalty/admin.html", "/loyalty/logo_diamante.png"])));
   self.skipWaiting();
