@@ -11,21 +11,21 @@
 :root{--bg:#23150b;--gold:#daa64e;--goldl:#e8b856;--txt:#f4ead9;--mut:#b39b78}
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
 body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
-.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:16px;align-items:center}
-.logo{width:96px;margin-top:8px}
-h1{font-size:1.5rem;letter-spacing:.12em;color:var(--goldl);text-transform:uppercase}
+.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:14px}
+.logo{width:90px;align-self:center;margin-top:8px}
+h1{font-size:1.45rem;letter-spacing:.12em;color:var(--goldl);text-transform:uppercase;text-align:center}
 h1 b{color:#fff}
 .sub{color:var(--mut);font-size:.88rem;text-align:center}
 .demo{width:100%;text-align:center;background:#443315;border:1px dashed var(--gold);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--goldl)}
-.card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;width:100%;box-shadow:0 8px 30px #0008}
-.dm{width:52px;height:52px}
+.card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;box-shadow:0 8px 30px #0008}
+.dm{width:50px;height:50px}
 .dm.earned{filter:drop-shadow(0 3px 8px #daa64e88)}
 .dm.pop{animation:pop .6s ease}
 @keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.4)}100%{transform:scale(1)}}
 .diamonds{display:flex;justify-content:center;gap:10px;margin:18px 0 10px}
-.prog{margin-top:8px;font-weight:600;color:var(--goldl);text-align:center;letter-spacing:.04em}
+.prog{font-weight:700;color:var(--goldl);text-align:center;letter-spacing:.04em}
 .bar{height:7px;background:#1c1108;border-radius:99px;overflow:hidden;margin-top:12px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--goldl));border-radius:99px;transition:width .6s ease}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--goldl));transition:width .6s ease}
 input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
 input:focus{outline:none;border-color:var(--gold)}
 button{width:100%;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;font-size:1rem;letter-spacing:.05em;cursor:pointer}
@@ -37,8 +37,9 @@ button:active{transform:scale(.98)}
 .mut{color:var(--mut);font-size:.85rem}
 .center{text-align:center}
 .hidden{display:none!important}
-#statusMsg{text-align:center;font-size:.88rem;margin-top:4px}
-#admLink{color:var(--mut);font-size:.78rem;margin-top:18px;text-decoration:underline}
+#statusMsg{text-align:center;font-size:.9rem;margin-top:8px;min-height:1.2em}
+#admLink{align-self:center;color:var(--mut);font-size:.78rem;text-decoration:underline}
+#ver{align-self:center;color:#7a5c30;font-size:.65rem}
 </style>
 </head>
 <body>
@@ -46,18 +47,20 @@ button:active{transform:scale(.98)}
   <img class="logo" src="/loyalty/logo_diamante.png" alt="">
   <h1>Mens<b>Line</b> Diamond Club</h1>
   <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
-  <div id="demoBanner" class="demo hidden">🔧 MODO PRUEBA — todo se guarda en este celular</div>
+  <div id="demoBanner" class="demo">🔧 MODO PRUEBA (v3) — los datos viven en este dispositivo; con Cloudflare vivirán en la nube</div>
 
+  <!-- REGISTRO -->
   <div id="regView" class="card hidden">
-    <p class="center mut" style="margin-bottom:14px">Regístrate una sola vez para ganar diamantes:</p>
+    <p class="mut center" style="margin-bottom:14px">Regístrate una sola vez para ganar diamantes:</p>
     <input id="regName" type="text" placeholder="Tu nombre" maxlength="30">
     <input id="regPhone" type="tel" inputmode="numeric" placeholder="Tu celular (WhatsApp)" maxlength="12">
     <button id="regBtn">COMENZAR MIS DIAMANTES</button>
     <p id="regMsg" class="mut center" style="margin-top:10px"></p>
   </div>
 
+  <!-- CARNET -->
   <div id="stView" class="card hidden">
-    <p class="sub" id="hello"></p>
+    <p class="mut center" id="hello"></p>
     <div class="diamonds" id="dmRow"></div>
     <p class="prog" id="prog"></p>
     <div class="bar"><i id="barFill" style="width:0%"></i></div>
@@ -66,101 +69,104 @@ button:active{transform:scale(.98)}
       <code id="rewardCode"></code>
       <p class="mut">Preséntale este código en recepción. El staff la valida y empiezas tu nuevo ciclo.</p>
     </div>
-    <p id="statusMsg" class="mut" style="color:#b39b78"></p>
-    <button id="visitBtn" class="ghost hidden">✨ Registrar mi visita de hoy</button>
+    <p id="statusMsg"></p>
   </div>
 
-  <button class="ghost hidden" id="addBtn">📲 Guardar en inicio (para recibir avisos)</button>
-  <button class="ghost hidden" id="notifBtn">🔔 Activar notificaciones</button>
   <a id="admLink" href="/loyalty/admin.html">Acceso del negocio 🔒</a>
+  <span id="ver"></span>
 </div>
 
 <script>
-/* SERVIDOR REAL (cuando conecten el Worker de Cloudflare, poner la URL aquí):
-   const API_BASE = "https://mensline-diamond-club.XXX.workers.dev"; */
-const API_BASE = null;            // null = MODO PRUEBA local
+/* SERVIDOR REAL (fase 2, Cloudflare Worker) — solo cambia API_BASE aquí:
+   const API_BASE = "https://mensline-diamond-club.<tu-subdominio>.workers.dev"; */
+const API_BASE = null;   // null = MODO PRUEBA local
 const GOAL = 5;
 const $ = id => document.getElementById(id);
+const today = () => new Date().toLocaleDateString("sv");
+
 const DM = earned => `<svg class="dm ${earned?'earned':''}" viewBox="0 0 64 64">
  ${earned
    ? '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8b856"/><stop offset="1" stop-color="#b8862f"/></linearGradient></defs><g fill="url(#g)" stroke="#fbe7b8" stroke-width="1.5"><path d="M32 2 14 18 32 60 50 18z"/><path d="M14 18h36L32 60z" fill="#f3d38c" opacity=".55"/></g>'
    : '<g fill="none" stroke="#7a5c30" stroke-width="2.5" opacity=".85"><path d="M32 2 14 18 32 60 50 18z"/><path d="M14 18h36M32 2 18 18 32 60M32 2 46 18 32 60" stroke-width="1.4" opacity=".5"/></g>'}
 </svg>`;
-const today = () => new Date().toLocaleDateString("sv"); // fecha local YYYY-MM-DD
-const demoGet = () => JSON.parse(localStorage.getItem("ml_demo_client") || "null");
-const demoSet = c => localStorage.setItem("ml_demo_client", JSON.stringify(c));
 
+/* ---------- Estado: LISTA de clientes (no se sobrecriben) ---------- */
+const all = () => JSON.parse(localStorage.getItem("ml_demo_clients") || "[]");
+const saveAll = a => localStorage.setItem("ml_demo_clients", JSON.stringify(a));
+const selfPhone = () => localStorage.getItem("ml_demo_self");
+const samePh = (a,b) => String(a).slice(-10) === String(b).slice(-10);
+const find = ph => all().find(c => samePh(c.phone, ph));
+function persist(cc){
+  const a = all();
+  const i = a.findIndex(x => samePh(x.phone, cc.phone));
+  if (i < 0) a.push(cc); else a[i] = cc;
+  saveAll(a);
+}
+const notify = (t, b) => { if ("Notification" in window && Notification.permission === "granted") new Notification(t, { body: b }); };
 function popIndex(i){ const el = document.querySelectorAll("#dmRow svg")[i]; if (el) el.classList.add("pop"); }
+
 function render(c){
-  $("stView").classList.remove("hidden");
   $("regView").classList.add("hidden");
+  $("stView").classList.remove("hidden");
   $("hello").textContent = `Hola, ${c.name} · Membresía #${String(c.phone).slice(-4)}`;
-  const pending = !!c.rewardPending;
-  const s = pending ? GOAL : c.stamps;
-  $("dmRow").innerHTML = Array.from({length:GOAL},(_,i)=>DM(i<s)).join("");
-  $("statusMsg").textContent = "";
-  $("visitBtn").classList.add("hidden");
-  if (pending){
-    // 5/5: la recompensa QUEDA lista y el ciclo NO avanza más hasta que el staff la canjee
+  $("statusMsg").style.color = "#b39b78";
+  if (c.rewardPending){
+    // 5/5: la recompensa queda EN ESPERA hasta que el staff la canjee (no avanza más)
+    $("dmRow").innerHTML = Array.from({length:GOAL},()=>DM(true)).join("");
     $("prog").textContent = "CICLO COMPLETO 💎";
     $("barFill").style.width = "100%";
     $("rewardBox").classList.remove("hidden");
     $("rewardCode").textContent = c.rewardCode;
-    if ("Notification" in window && Notification.permission === "granted" && !sessionStorage.getItem("ml_rw")){
+    if (!sessionStorage.getItem("ml_rw")){
       sessionStorage.setItem("ml_rw","1");
-      new Notification("💎 ¡Recompensa lista!", { body: "Código: " + c.rewardCode });
+      notify("💎 ¡Recompensa lista!", "Código: " + c.rewardCode);
     }
   } else {
-    $("prog").textContent = `${s} de ${GOAL} diamantes`;
-    $("barFill").style.width = (s/GOAL*100) + "%";
-    // tocar la tarjeta (visita) = 1 diamante, MÁXIMO 1 POR DÍA
+    $("rewardBox").classList.add("hidden");
+    $("dmRow").innerHTML = Array.from({length:GOAL},(_,i)=>DM(i < c.stamps)).join("");
+    $("prog").textContent = `${c.stamps} de ${GOAL} diamantes`;
+    $("barFill").style.width = (c.stamps/GOAL*100) + "%";
+    /* ⬇️ AUTO: tocar la tarjeta (abrir la app) = 1 diamante, MÁXIMO 1 POR DÍA */
     if (c.lastVisit === today()){
       $("statusMsg").textContent = "✨ Ya registramos tu visita de hoy. ¡Nos vemos mañana!";
     } else {
-      autoVisit(c);
+      doVisit(c);
     }
   }
-  $("addBtn").classList.remove("hidden");
-  if ("Notification" in window && Notification.permission === "default")
-    $("notifBtn").classList.remove("hidden");
 }
-const notify = (title, body) => { if ("Notification" in window && Notification.permission === "granted") new Notification(title, { body }); };
 
-/* Visita al tocar la tarjeta → suma 1 diamante (1 por día, chequeado arriba) */
-function autoVisit(c){
-  const before = c.stamps;
-  c.lastVisit = today();
+function doVisit(c){
   c.stamps++;
   if (c.stamps >= GOAL){
     c.rewardPending = true;
     c.rewardCode = String(Math.floor(100000 + Math.random()*900000));
-    demoSet(c); render(c); popIndex(GOAL-1);
+    persist(c); render(c); popIndex(GOAL-1);
     notify("💎 ¡Recompensa lista!", "Código: " + c.rewardCode);
   } else {
-    demoSet(c); render(c); popIndex(before);
+    c.lastVisit = today();
+    persist(c); render(c); popIndex(c.stamps-1);
     $("statusMsg").style.color = "#8fd48f";
-    $("statusMsg").textContent = "✨ Diamante registrado por tu visita de hoy";
-    notify("Diamond Club 💎", `Sello ${before+1} de ${GOAL} conseguido`);
+    $("statusMsg").textContent = "✨ Diamante " + c.stamps + "/" + GOAL + " registrado por tu visita de hoy";
+    notify("Diamond Club 💎", `Tienes ${c.stamps} de ${GOAL} diamantes`);
   }
 }
-/* Botón manual de repuesto (por si el auto no corrió) */
-$("visitBtn").onclick = () => { const c = demoGet(); if (c && !c.rewardPending && c.lastVisit !== today()){ c.lastVisit = ""; render(c); } };
 
 /* arranque */
-if (!API_BASE) $("demoBanner").classList.remove("hidden");
-const local = demoGet();
-if (local) render(local); else $("regView").classList.remove("hidden");
+$("ver").textContent = "v3 · demo · " + today();
+const me = find(selfPhone());
+if (me) render(me); else $("regView").classList.remove("hidden");
 
 $("regBtn").onclick = () => {
   const name = $("regName").value.trim();
   const phone = $("regPhone").value.replace(/\D/g,"");
   if (!name || phone.length < 7){ $("regMsg").textContent = "Completa nombre y celular"; return; }
-  const c = { name, phone, stamps: 0, rewardPending: false, rewardCode: null, lastVisit: today() };
-  demoSet(c); $("regMsg").textContent = "¡Listo! Ya eres parte del Diamond Club";
-  setTimeout(()=>render(c), 400);
+  const c = find(phone) || { name, phone, stamps:0, rewardPending:false, rewardCode:null, lastVisit:"" };
+  c.name = name;
+  persist(c);
+  localStorage.setItem("ml_demo_self", c.phone);  // este celular = este cliente
+  $("regMsg").textContent = "¡Listo, " + name + "! Ya eres del Diamond Club 💎";
+  setTimeout(() => render(c), 350);
 };
-$("addBtn").onclick = () => alert("En iPhone: Compartir → Añadir a pantalla de inicio.\nEn Android: menú ⋮ → Instalar aplicación.");
-$("notifBtn").onclick = async () => { if (await Notification.requestPermission() === "granted") $("notifBtn").classList.add("hidden"); };
 </script>
 </body>
 </html>

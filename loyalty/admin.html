@@ -10,7 +10,7 @@
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
 body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
 .wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:14px;align-items:center}
-h1{font-size:1.2rem;letter-spacing:.1em;color:var(--goldl)}
+h1{font-size:1.2rem;letter-spacing:.1em;color:var(--goldl);text-align:center}
 .demo{width:100%;text-align:center;background:#443315;border:1px dashed var(--gold);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--goldl)}
 .card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;width:100%}
 input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
@@ -19,9 +19,11 @@ button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gra
 .ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600;font-size:.88rem;padding:11px}
 .err{color:#e98a7a;font-size:.85rem;min-height:1.2em}
 .ok{color:#8fd48f;font-size:.85rem}
-#list{width:100%;font-size:.9rem}
-#list div{display:flex;justify-content:space-between;padding:8px 4px;border-bottom:1px solid #4a3013}
+.cl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 6px;border-bottom:1px solid #4a3013;font-size:.9rem}
+.cl .n{font-weight:700}
+.cl .p{color:var(--mut);font-size:.74rem}
 .mini{font-size:.75rem;color:var(--mut)}
+.sel{outline:2px solid var(--gold);border-radius:8px;background:#2b1b0c}
 </style>
 </head>
 <body>
@@ -29,81 +31,95 @@ button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gra
   <h1>MENS<b>LINE</b> — PANEL DIAMANTE</h1>
 
   <div class="card" id="lockCard">
-    <p class="mut" style="margin-bottom:10px; font-size:.85rem">Solo el personal del negocio entra aquí.<br>El PIN evita que un cliente se sume diamantes él mismo.</p>
+    <p class="mut" style="margin-bottom:10px;font-size:.85rem">🔒 El PIN es la <b>llave del panel</b>: el cliente nunca puede entrar aquí a sumarse diamantes él mismo. Solo el personal del negocio.</p>
     <input id="pin" type="password" inputmode="numeric" placeholder="PIN del negocio">
     <button id="unlock">ENTRAR</button>
     <p id="lockMsg" class="err"></p>
   </div>
 
   <div class="card hidden" id="panel">
-    <p class="mut" style="margin-bottom:10px">Celular del cliente (el que se registró)</p>
-    <input id="phone" type="tel" inputmode="numeric" placeholder="Celular del cliente">
-    <button id="stampBtn">💎 SUMAR DIAMANTE (extra / corrección)</button>
-    <button id="redeemBtn" class="ghost">🎁 Entregar recompensa → nuevo ciclo</button>
-    <button id="resetBtn" class="ghost">↩️ Reiniciar ciclo sin entregar recompensa</button>
-    <button id="listBtn" class="ghost">🔄 Ver todos los clientes</button>
-    <div id="list" style="margin-top:12px"></div>
-    <p class="mini" style="margin-top:8px">Nota: el cliente normalmente gana 1 diamante por día al tocar su tarjeta.<br>Este panel es para sumar de más (gastó 2 veces el mismo día), canjear o corregir.</p>
+    <p style="font-weight:700;color:var(--goldl);margin-bottom:6px;font-size:.95rem">CLIENTES REGISTRADOS</p>
+    <div id="list"></div>
+    <p id="selInfo" class="mini" style="margin-top:8px">Toca un cliente arriba para seleccionarlo y luego usa los botones.</p>
+    <button id="stampBtn" class="ghost" style="margin-top:10px">💎 SUMAR DIAMANTE (al seleccionado)</button>
+    <button id="redeemBtn" class="ghost">🎁 Entregar recompensa → ciclo nuevo (0/5)</button>
+    <button id="delBtn" class="ghost">🗑️ Eliminar cliente (prueba)</button>
+    <button id="resetBtn" class="ghost">🔄 Borrar TODOS los datos (empezar demo de cero)</button>
+    <p class="mini" style="margin-top:8px">Diamante normal: el CLIENTE lo gana solo tocando su tarjeta (1 por día).<br>Este panel es para correcciones de staff.</p>
     <p id="msg" class="err"></p>
   </div>
 
-  <div id="demoBanner" class="demo hidden">🔧 MODO PRUEBA — datos guardados en este celular.<br>PIN de prueba: <b>1717</b></div>
+  <div class="demo">🔧 MODO PRUEBA (v3) — datos de este dispositivo<br>PIN de prueba: <b>1717</b></div>
 </div>
 <script>
-/* SERVIDOR REAL (Worker de Cloudflare): const API_BASE = "https://mensline-diamond-club.XXX.workers.dev"; */
-const API_BASE = null;            // null = MODO PRUEBA local (PIN de prueba: 1717)
+/* SERVIDOR REAL (fase 2, Cloudflare Worker) — solo cambia API_BASE:
+   const API_BASE = "https://mensline-diamond-club.<tu-subdominio>.workers.dev"; */
+const API_BASE = null;   // null = MODO PRUEBA local (PIN de prueba: 1717)
 const DEMO_PIN = "1717";
 const GOAL = 5;
 const $ = id => document.getElementById(id);
+const all = () => JSON.parse(localStorage.getItem("ml_demo_clients") || "[]");
+const saveAll = a => localStorage.setItem("ml_demo_clients", JSON.stringify(a));
+const samePh = (a,b) => String(a).slice(-10) === String(b).slice(-10);
+let SEL = null;
 
-const demoGet = () => JSON.parse(localStorage.getItem("ml_demo_client") || "null");
-const demoSet = c => localStorage.setItem("ml_demo_client", JSON.stringify(c));
-
-if (!API_BASE) $("demoBanner").classList.remove("hidden");
+if (!API_BASE) $("demoBanner") && document.querySelectorAll(".demo")[1] && document.querySelectorAll(".demo")[1].classList.remove("hidden");
 
 $("unlock").onclick = () => {
-  if ($("pin").value.replace(/\D/g,"") === DEMO_PIN){ unlockUI(); showList(); } else $("lockMsg").textContent = "PIN incorrecto";
+  if ($("pin").value.replace(/\D/g,"") === DEMO_PIN){ $("lockCard").classList.add("hidden"); $("panel").classList.remove("hidden"); showList(); }
+  else $("lockMsg").textContent = "PIN incorrecto";
 };
-function unlockUI(){ $("lockCard").classList.add("hidden"); $("panel").classList.remove("hidden"); }
-function findClient(){
-  const c = demoGet();
-  if (!c){ msg("err","No hay cliente registrado"); return null; }
-  if (String(c.phone).slice(-10) !== $("phone").value.replace(/\D/g,"").slice(-10)){ msg("err","El celular no coincide con ningún cliente"); return null; }
-  return c;
-}
+
+function msg(cls, t){ $("msg").className = cls; $("msg").textContent = t; }
+
 function showList(){
-  const c = demoGet();
-  $("list").innerHTML = c ? `<div><span>${c.name}</span><span>${c.rewardPending ? "🎁 listo ("+c.rewardCode+")" : c.stamps + "/" + GOAL}</span></div>` : "<p class='mut'>Aún no hay clientes registrados.</p>";
+  const a = all();
+  if (!a.length){ $("list").innerHTML = "<p class='mini'>Aún no hay clientes. Regístralos desde la app (pantalla principal).</p>"; return; }
+  $("list").innerHTML = a.map((c,i) =>
+    `<div class="cl${SEL===i?' sel':''}" data-i="${i}">
+       <span><span class="n">${c.name}</span><br><span class="p">#${String(c.phone).slice(-10)}</span></span>
+       <span style="text-align:right">${c.rewardPending
+         ? `<b style="color:#e8b856">🎁 RECOMPENSA LISTA</b><br><span class="p">código ${c.rewardCode}</span>`
+         : `<b>${"·".repeat(c.stamps)}${"◇".repeat(GOAL-c.stamps)}</b><br><span class="p">${c.stamps}/${GOAL} · última visita: ${c.lastVisit || "—"}</span>`}</span>
+     </div>`).join("");
+  document.querySelectorAll(".cl").forEach(el => el.onclick = () => { SEL = +el.dataset.i; showList(); msg("ok","Seleccionado: " + all()[SEL].name); });
 }
-/* Suma manual del staff — puede sumar aunque ya tocó hoy (corrección), pero no si tienes recompensa sin canjear */
+
+function selClient(){
+  if (SEL === null || !all()[SEL]){ msg("err","Selecciona un cliente de la lista primero"); return null; }
+  return all()[SEL];
+}
+function saveSel(cc){ const a = all(); a[SEL] = cc; saveAll(a); showList(); }
+
 $("stampBtn").onclick = () => {
-  const c = findClient(); if (!c) return;
-  if (c.rewardPending){ msg("err","Tiene recompensa sin canjear (código " + c.rewardCode + "). Canjéala primero."); return; }
-  c.stamps++; c.lastVisit = new Date().toLocaleDateString("sv");
+  const c = selClient(); if (!c) return;
+  if (c.rewardPending){ msg("err","Tiene recompensa sin canjear (código " + c.rewardCode + "). Entregala primero 🎁"); return; }
+  c.stamps++;
   if (c.stamps >= GOAL){
     c.rewardPending = true; c.rewardCode = String(Math.floor(100000 + Math.random()*900000));
-    msg("ok", `¡DIAMANTE #${GOAL}! 🎉 Recompensa activada · Código: ${c.rewardCode}`);
-  } else {
-    msg("ok", `Diamante ${c.stamps}/${GOAL} sumado ✅`);
-  }
-  demoSet(c); showList();
+    msg("ok", `¡DIAMANTE #${GOAL}! 🎉 Recompensa activada · Código: ${c.rewardCode} → ahora "Entregar recompensa"`);
+  } else { msg("ok", `Diamante sumado: ${c.name} ahora ${c.stamps}/${GOAL} ✅`); }
+  saveSel(c);
 };
-/* Canje: congelaba el cliente para siempre — ahora el ciclo REINICIA y puede volver a sumar */
+
 $("redeemBtn").onclick = () => {
-  const c = findClient(); if (!c) return;
-  if (!c.rewardPending){ msg("err","Ese cliente no tiene recompensa pendiente"); return; }
-  c.rewardPending = false; c.rewardCode = null;
-  c.stamps = 0; c.lastVisit = "";            // ← EL FIX: ciclo nuevo desde 0
-  demoSet(c);
-  msg("ok","Recompensa entregada ✅ El cliente empieza nuevo ciclo (0/" + GOAL + ")");
-  showList();
+  const c = selClient(); if (!c) return;
+  if (!c.rewardPending){ msg("err","Ese cliente no tiene recompensa pendiente (llega a 5/5 primero)"); return; }
+  c.rewardPending = false; c.rewardCode = null; c.stamps = 0; c.lastVisit = "";
+  saveSel(c);
+  msg("ok","Recompensa entregada ✅ El cliente empieza ciclo nuevo (0/5). Pídele que toque su tarjeta.");
 };
+
+$("delBtn").onclick = () => {
+  const c = selClient(); if (!c) return;
+  if (confirm("¿Eliminar a " + c.name + " de la lista?")){ saveAll(all().filter((_,i)=>i!==SEL)); SEL = null; showList(); msg("ok","Cliente eliminado"); }
+};
+
 $("resetBtn").onclick = () => {
-  const c = findClient(); if (!c) return;
-  c.stamps = 0; c.rewardPending = false; c.rewardCode = null; c.lastVisit = "";
-  demoSet(c); msg("ok","Ciclo reiniciado a 0/" + GOAL + " (sin entregar recompensa)"); showList();
+  if (confirm("¿Borrar TODOS los clientes y empezar la demo de cero?")){ saveAll([]); SEL = null; showList(); msg("ok","Todo borrado. La demo empieza limpia."); }
 };
-function msg(cls, t){ $("msg").className = cls; $("msg").textContent = t; }
+
+function msg(cls,t){ $("msg").className = cls; $("msg").textContent = t; }
 </script>
 </body>
 </html>
