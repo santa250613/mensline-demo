@@ -1,11 +1,11 @@
 {
   "name": "MensLine Diamond Club",
   "short_name": "ML Diamond",
-  "start_url": "/",
+  "start_url": "/loyalty/",
   "display": "standalone",
   "background_color": "#2b1c10",
   "theme_color": "#daa64e",
   "icons": [
-    { "src": "/logo_diamante.png", "sizes": "any", "type": "image/png", "purpose": "any" }
+    { "src": "/loyalty/logo_diamante.png", "sizes": "any", "type": "image/png", "purpose": "any" }
   ]
 }
