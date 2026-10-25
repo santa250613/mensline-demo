@@ -5,25 +5,80 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex">
 <title>MensLine — Panel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#23150b;--gold:#daa64e;--goldl:#e8b856;--txt:#f4ead9;--mut:#b39b78}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,sans-serif}
-body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
-.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:14px;align-items:center}
-h1{font-size:1.2rem;letter-spacing:.1em;color:var(--goldl);text-align:center}
-.card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;width:100%}
-input{width:100%;padding:13px 15px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
-input:focus{outline:none;border-color:var(--gold)}
-button{width:100%;padding:13px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;cursor:pointer;margin-bottom:8px}
-button:disabled{opacity:.5;cursor:wait}
-.ghost{background:none;border:1px solid #5b3d1e;color:var(--mut);font-weight:600;font-size:.88rem;padding:11px}
-.err{color:#e98a7a;font-size:.85rem;min-height:1.2em}
+/* ===== MensLine — Panel · estilo según BRAND.md (solo CSS/HTML) ===== */
+:root{
+  --bg:#23150b;--bg2:#2b1c10;--gold:#daa64e;--goldl:#e8b856;--goldd:#443319;
+  --stroke:#fbe7b8;--txt:#f4ead9;--mut:#b39b78;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:var(--sans)}
+body{
+  background:
+    radial-gradient(120% 80% at 50% -10%, #35230f 0%, rgba(53,35,15,0) 55%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 60%);
+  background-attachment:fixed;color:var(--txt);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:28px 16px calc(28px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+.hidden{display:none!important}
+.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:16px;align-items:center;animation:rise .5s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+h1{font-family:var(--serif);font-weight:600;font-size:1.35rem;letter-spacing:.03em;text-align:center;
+   color:var(--goldl);background:linear-gradient(180deg,#f6dca0,var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+h1 b{-webkit-text-fill-color:#fff;color:#fff}
+
+/* --- Tarjeta con borde dorado animado y esquinas 24px --- */
+.card{position:relative;background:linear-gradient(180deg,#3a2514,#2a1a0e);border:0;border-radius:24px;padding:24px;width:100%;
+      box-shadow:0 14px 40px #0009, inset 0 1px 0 #ffffff14;isolation:isolate}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+   background:linear-gradient(130deg,var(--goldd) 0%,var(--gold) 25%,var(--stroke) 42%,var(--gold) 60%,var(--goldd) 100%);
+   background-size:260% 260%;
+   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+   -webkit-mask-composite:xor;mask-composite:exclude;animation:border-sheen 7s linear infinite;opacity:.9}
+@keyframes border-sheen{0%{background-position:0% 50%}100%{background-position:260% 50%}}
+.card>*{position:relative;z-index:1}
+
+input{width:100%;padding:14px 16px;border-radius:14px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:12px;transition:border-color .25s,box-shadow .25s}
+input::placeholder{color:#8a7555}
+input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px #daa64e2e}
+button{width:100%;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#b8862f,var(--gold) 45%,var(--goldl));color:#2a1a0b;font-weight:700;letter-spacing:.03em;cursor:pointer;margin-bottom:10px;box-shadow:0 8px 20px #daa64e33;transition:transform .15s,box-shadow .25s,filter .25s}
+button:hover{filter:brightness(1.05)}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.5;cursor:wait;filter:none}
+.ghost{background:#231407;border:1px solid #5b3d1e;color:var(--txt);font-weight:600;font-size:.9rem;padding:13px;box-shadow:none;text-align:left}
+.ghost:hover{border-color:var(--gold);filter:none;background:#2b1b0c}
+
+.err{color:#e98a7a;font-size:.85rem;min-height:1.2em;transition:color .3s}
 .ok{color:#8fd48f;font-size:.85rem}
-.cl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:10px 6px;border-bottom:1px solid #4a3013;font-size:.9rem;cursor:pointer}
-.cl .n{font-weight:700}
-.cl .p{color:var(--mut);font-size:.74rem}
-.mini{font-size:.75rem;color:var(--mut)}
-.sel{outline:2px solid var(--gold);border-radius:8px;background:#2b1b0c}
+.mut{color:var(--mut)}
+.mini{font-size:.76rem;color:var(--mut);line-height:1.5}
+
+/* --- Lista de clientes: avatar circular con inicial --- */
+#list{display:flex;flex-direction:column;gap:4px;margin-top:4px}
+.cl{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px 10px;border-bottom:1px solid #4a3013;font-size:.9rem;cursor:pointer;border-radius:12px;transition:background .2s,transform .12s}
+.cl:hover{background:#2b1b0c}
+.cl:active{transform:scale(.99)}
+.cl .n{font-weight:600;font-size:.98rem;color:var(--txt);display:inline-block}
+/* avatar real en columna aparte (inicial en medallón dorado) */
+.cl .ava{flex:0 0 auto;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:50%;background:linear-gradient(140deg,var(--goldl),#b8862f);color:#2a1a0b;
+  font-family:var(--serif);font-weight:700;box-shadow:0 2px 8px #0007, inset 0 1px 0 #fff6}
+.cl .p{color:var(--mut);font-size:.74rem;letter-spacing:.02em}
+.cl b{color:var(--gold);letter-spacing:.14em}
+.sel{background:#2b1b0c;box-shadow:0 0 0 2px var(--gold), 0 6px 18px #daa64e22;border-bottom-color:transparent}
+
+@media (max-width:380px){
+  h1{font-size:1.2rem}
+  .cl .n{font-size:.92rem}
+  .cl .n::first-letter{padding:5px 9px;margin-right:8px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
 </style>
 </head>
 <body>
@@ -79,7 +134,7 @@ function showList(){
   if (!CLIENTS.length){ $("list").innerHTML = "<p class='mini'>Aún no hay clientes. Se registran desde la app (tocando la tarjeta NFC).</p>"; return; }
   $("list").innerHTML = CLIENTS.map((c,i) =>
     `<div class="cl${SEL===i?' sel':''}" data-i="${i}">
-       <span><span class="n">${c.name}</span><br><span class="p">#${String(c.phone).slice(-10)}</span></span>
+       <span class="ava">${c.name.trim().charAt(0).toUpperCase()}</span><span><span class="n">${c.name}</span><br><span class="p">#${String(c.phone).slice(-10)}</span></span>
        <span style="text-align:right">${c.rewardPending
          ? `<b style="color:#e8b856">🎁 RECOMPENSA LISTA</b><br><span class="p">código ${c.rewardCode}</span>`
          : `<b>${"·".repeat(c.stamps)}${"◇".repeat(GOAL-c.stamps)}</b><br><span class="p">${c.stamps}/${GOAL} · última visita: ${c.lastVisit || "—"}</span>`}</span>

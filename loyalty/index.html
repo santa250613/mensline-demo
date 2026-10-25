@@ -7,37 +7,92 @@
 <title>MensLine Diamond Club</title>
 <link rel="manifest" href="/loyalty/manifest.webmanifest">
 <link rel="icon" href="/loyalty/logo_diamante.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#23150b;--gold:#daa64e;--goldl:#e8b856;--txt:#f4ead9;--mut:#b39b78}
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',system-ui,-apple-system,sans-serif}
-body{background:var(--bg);color:var(--txt);min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:24px 16px}
-.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:14px}
-.logo{width:90px;align-self:center;margin-top:8px}
-h1{font-size:1.45rem;letter-spacing:.12em;color:var(--goldl);text-transform:uppercase;text-align:center}
-h1 b{color:#fff}
-.sub{color:var(--mut);font-size:.88rem;text-align:center}
-.card{background:linear-gradient(180deg,#3a2514,#2e1c0f);border:1px solid #5b3d1e;border-radius:20px;padding:22px;box-shadow:0 8px 30px #0008}
-.dm{width:50px;height:50px}
+/* ===== MensLine Diamond Club — estilo según BRAND.md (solo CSS/HTML) ===== */
+:root{
+  --bg:#23150b;--bg2:#2b1c10;--gold:#daa64e;--goldl:#e8b856;--goldd:#443319;
+  --stroke:#fbe7b8;--txt:#f4ead9;--mut:#b39b78;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,-apple-system,sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;font-family:var(--sans)}
+body{
+  background:
+    radial-gradient(120% 80% at 50% -10%, #35230f 0%, rgba(53,35,15,0) 55%),
+    linear-gradient(180deg,var(--bg2),var(--bg) 60%);
+  background-attachment:fixed;color:var(--txt);min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;padding:28px 16px calc(28px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{width:100%;max-width:430px;display:flex;flex-direction:column;gap:16px;animation:rise .6s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.logo{width:88px;align-self:center;margin-top:6px;filter:drop-shadow(0 4px 14px #0007) drop-shadow(0 0 10px #daa64e3b)}
+h1{font-family:var(--serif);font-weight:600;font-size:1.72rem;line-height:1.1;letter-spacing:.015em;
+   color:var(--goldl);text-align:center;
+   background:linear-gradient(180deg,#f6dca0,var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+h1 b{font-weight:700;-webkit-text-fill-color:#fff;color:#fff}
+.sub{color:var(--mut);font-size:.9rem;line-height:1.5;text-align:center;letter-spacing:.01em}
+
+/* --- Tarjeta con borde dorado animado y esquinas 24px --- */
+.card{position:relative;background:linear-gradient(180deg,#3a2514,#2a1a0e);border:0;border-radius:24px;
+      padding:24px;box-shadow:0 14px 40px #0009, inset 0 1px 0 #ffffff14;isolation:isolate}
+.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
+   background:linear-gradient(130deg,var(--goldd) 0%,var(--gold) 25%,var(--stroke) 42%,var(--gold) 60%,var(--goldd) 100%);
+   background-size:260% 260%;
+   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+   -webkit-mask-composite:xor;mask-composite:exclude;
+   animation:border-sheen 7s linear infinite;opacity:.9}
+@keyframes border-sheen{0%{background-position:0% 50%}100%{background-position:260% 50%}}
+.card>*{position:relative;z-index:1}
+
+/* --- Diamantes --- */
+.diamonds{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:20px 0 12px}
+.dm{width:50px;height:50px;transition:transform .3s ease}
 .dm.earned{filter:drop-shadow(0 3px 8px #daa64e88)}
+/* el diamante más reciente (último ganado) con glow pulsante */
+#dmRow .dm.earned:not(:has(+ .dm.earned)){animation:glow 2.1s ease-in-out infinite}
+/* destello dorado al sumar (la lógica añade .pop al nuevo diamante) */
 .dm.pop{animation:pop .6s ease}
-@keyframes pop{0%{transform:scale(1)}45%{transform:scale(1.4)}100%{transform:scale(1)}}
-.diamonds{display:flex;justify-content:center;gap:10px;margin:18px 0 10px}
-.prog{font-weight:700;color:var(--goldl);text-align:center;letter-spacing:.04em}
-.bar{height:7px;background:#1c1108;border-radius:99px;overflow:hidden;margin-top:12px}
-.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),var(--goldl));transition:width .6s ease}
-input{width:100%;padding:14px 16px;border-radius:12px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:10px}
-input:focus{outline:none;border-color:var(--gold)}
-button{width:100%;padding:14px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--gold),var(--goldl));color:#23150b;font-weight:800;font-size:1rem;letter-spacing:.05em;cursor:pointer}
-button:active{transform:scale(.98)}
-button:disabled{opacity:.5;cursor:wait}
-.reward{text-align:center;padding:18px;border:2px solid var(--gold);border-radius:16px;background:#2b1b0c;margin-top:6px}
-.reward h2{color:var(--goldl);font-size:1.1rem;letter-spacing:.08em}
-.reward code{display:block;font-size:2rem;letter-spacing:.35em;color:#fff;margin:10px 0;font-family:monospace}
-.mut{color:var(--mut);font-size:.85rem}
+#dmRow .dm.earned.pop:not(:has(+ .dm.earned)){animation:pop .6s ease, glow 2.1s ease-in-out .6s infinite}
+@keyframes pop{0%{transform:scale(1)}28%{transform:scale(1.5);filter:drop-shadow(0 0 18px var(--goldl))}60%{transform:scale(.94)}100%{transform:scale(1)}}
+@keyframes glow{0%,100%{filter:drop-shadow(0 0 4px #daa64e77)}50%{filter:drop-shadow(0 0 14px var(--goldl)) drop-shadow(0 0 3px var(--stroke))}}
+
+.prog{font-family:var(--serif);font-weight:600;font-size:1.22rem;color:var(--goldl);text-align:center;letter-spacing:.02em}
+.bar{height:8px;background:#1c1108;border-radius:99px;overflow:hidden;margin-top:14px;box-shadow:inset 0 1px 2px #0008}
+.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--goldl),var(--stroke));transition:width .6s cubic-bezier(.22,1,.36,1)}
+
+/* --- Formularios --- */
+input{width:100%;padding:14px 16px;border-radius:14px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:12px;transition:border-color .25s,box-shadow .25s}
+input::placeholder{color:#8a7555}
+input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px #daa64e2e}
+button{width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#b8862f,var(--gold) 45%,var(--goldl));color:#2a1a0b;font-family:var(--sans);font-weight:700;font-size:1rem;letter-spacing:.04em;cursor:pointer;box-shadow:0 8px 20px #daa64e33;transition:transform .15s,box-shadow .25s,filter .25s}
+button:hover{filter:brightness(1.05);box-shadow:0 10px 26px #daa64e4d}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.5;cursor:wait;filter:none}
+
+/* --- Recompensa --- */
+.reward{text-align:center;padding:20px;border:1px solid var(--gold);border-radius:18px;background:radial-gradient(130% 100% at 50% 0,#3a2410,#241607);margin-top:10px;box-shadow:0 0 24px #daa64e2b;animation:rise .5s ease both}
+.reward h2{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.18rem;letter-spacing:.03em}
+.reward code{display:block;font-size:2.05rem;letter-spacing:.34em;color:#fff;margin:12px 0;font-family:'Courier New',monospace;text-shadow:0 2px 10px #daa64e66}
+
+.mut{color:var(--mut);font-size:.86rem;line-height:1.5}
 .center{text-align:center}
 .hidden{display:none!important}
-#statusMsg{text-align:center;font-size:.9rem;margin-top:8px;min-height:1.2em}
-#admLink{align-self:center;color:var(--mut);font-size:.78rem;text-decoration:underline}
+#statusMsg{text-align:center;font-size:.92rem;margin-top:10px;min-height:1.2em;transition:color .3s}
+#admLink{align-self:center;color:var(--mut);font-size:.8rem;text-decoration:none;border-bottom:1px solid #5b3d1e;padding-bottom:1px;transition:color .25s,border-color .25s}
+#admLink:hover{color:var(--goldl);border-color:var(--gold)}
+
+@media (max-width:380px){
+  h1{font-size:1.5rem}
+  .dm{width:44px;height:44px}
+  .diamonds{gap:9px}
+  .reward code{font-size:1.7rem;letter-spacing:.26em}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
 </style>
 </head>
 <body>
