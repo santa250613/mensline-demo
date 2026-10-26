@@ -107,6 +107,9 @@ export default {
       }
       const c = await getClient(env, p);
       if (!c || !c.rewardPending) return J({ ok: false, err: "Sin recompensa pendiente" });
+      // Confirmación por código: el staff DEBE teclear el código del cliente
+      const codeIn = String(body.code || "").replace(/\D/g, "");
+      if (codeIn !== String(c.rewardCode || "")) return J({ ok: false, err: "Código incorrecto" }, 403);
       await env.LOY_KV.delete("code:" + c.rewardCode);
       c.rewardPending = false; c.rewardCode = null; c.stamps = 0; c.lastVisit = "";
       c.cycles = (c.cycles || 0) + 1;

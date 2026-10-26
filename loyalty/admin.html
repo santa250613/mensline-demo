@@ -169,8 +169,10 @@ $("stampBtn").onclick = async () => {
 
 $("redeemBtn").onclick = async () => {
   const c = selClient(); if (!c) return;
+  const codeIn = (prompt("Pídele el código de recompensa al cliente y escríbelo aquí:") || "").trim();
+  if (!codeIn) return msg("err","Se necesita el código del cliente para entregar.");
   $("redeemBtn").disabled = true;
-  const r = await api("/redeem", { pin: PIN, phone: c.phone });
+  const r = await api("/redeem", { pin: PIN, phone: c.phone, code: codeIn });
   $("redeemBtn").disabled = false;
   if (!r.ok){ msg("err", r.err || "Error"); return; }
   updSel(r.client);
