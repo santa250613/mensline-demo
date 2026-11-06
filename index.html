@@ -31,7 +31,7 @@
   .foot{color:#cfc6b4;font-size:11px;margin-top:26px;font-family:Georgia,serif;text-shadow:0 1px 8px rgba(0,0,0,.9);font-style:italic}
   @media (max-width:420px){ .wrap{padding:26px 16px 50px} h1{font-size:27px} .logo{width:112px} a.btn{font-size:14.5px;padding:14px} }
 </style></head><body>
-<video class="bgvideo" src="assets/fondo.mp4" autoplay muted loop playsinline poster="assets/web/foto1.jpg"></video>
+<video class="bgvideo" src="assets/fondo.mp4" autoplay muted loop playsinline preload="auto" poster="assets/web/foto1.jpg"></video>
 <div class="bgveil"></div>
 <div class="wrap">
   <img class="logo" src="logo_diamante.png" alt="MEN'S LINE">
@@ -53,3 +53,15 @@
 
   <p class="foot">MEN'S LINE Professional Studio · La Hacienda, Cali</p>
 </div>
+<script>
+/* iOS: modo ahorro de datos/batería bloquea autoplay → reintentos y play al primer toque */
+(function(){
+  const v = document.querySelector("video.bgvideo");
+  if (!v) return;
+  const tryPlay = () => { const p = v.play(); if (p) p.catch(()=>{}); };
+  tryPlay();
+  ["touchstart","click","scroll","pointerdown"].forEach(e =>
+    document.addEventListener(e, tryPlay, {once:false, capture:true, passive:true}));
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) tryPlay(); });
+})();
+</script>

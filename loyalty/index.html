@@ -86,16 +86,18 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
 .lveil{position:fixed;inset:0;z-index:-1;
   background:linear-gradient(180deg,rgba(20,10,2,.72) 0%,rgba(20,10,2,.42) 30%,rgba(20,10,2,.5) 65%,rgba(10,5,1,.9) 100%)}
 
-/* ══ ESCALERA DE RECOMPENSAS POR DIAMANTE ══ */
-.ladder{display:flex;flex-direction:column;gap:10px;margin-top:6px}
-.step{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:16px;
-  border:1px solid rgba(218,166,78,.22);background:linear-gradient(120deg,rgba(58,37,20,.5),rgba(34,20,9,.5))}
-.step svg{width:34px;height:34px;flex:none}
-.step .n{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.02rem;white-space:nowrap}
-.step .t{font-size:.92rem;color:var(--txt);line-height:1.35}
-.step .s2{font-size:.78rem;color:var(--mut)}
-.step.here{border-color:var(--gold);box-shadow:0 0 18px rgba(218,166,78,.35);background:linear-gradient(120deg,rgba(74,47,22,.72),rgba(48,30,13,.72))}
-.sec{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;letter-spacing:.05em;margin-top:2px}
+/* ══ ESCALERA DE RECOMPENSAS — lista limpia, sin cajitas negras ══ */
+.ladder{display:flex;flex-direction:column;margin-top:4px}
+.step{display:flex;align-items:center;gap:14px;padding:16px 6px;border-radius:0;
+  border:0;border-bottom:1px solid rgba(218,166,78,.16);transition:background .25s}
+.step:last-child{border-bottom:0}
+.step svg{width:36px;height:36px;flex:none}
+.step .n{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;white-space:nowrap}
+.step .t{font-size:.95rem;color:var(--txt);line-height:1.35;letter-spacing:.01em}
+.step .s2{font-size:.8rem;color:var(--mut)}
+.step.here{background:linear-gradient(90deg,rgba(218,166,78,.14),rgba(218,166,78,0))}
+.step.here .n{color:#fff;text-shadow:0 0 12px rgba(232,184,86,.5)}
+.sec{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;letter-spacing:.12em;margin-top:2px;text-align:center}
 
 .mut{color:var(--mut);font-size:.86rem;line-height:1.5}
 .center{text-align:center}
@@ -110,6 +112,19 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   .diamonds{gap:9px}
   .reward code{font-size:1.7rem;letter-spacing:.26em}
 }
+/* ══ PC: la página deja de verse "de celular" — columnas elegantes ══ */
+@media (min-width:820px){
+  body{padding:56px 24px}
+  .wrap{max-width:880px;display:grid;grid-template-columns:1fr 1fr;gap:20px 46px;align-items:start}
+  .logo{width:110px}
+  h1{font-size:2.2rem}
+  .sub{font-size:1rem}
+  .head{grid-column:1/3;grid-row:1}
+  .colL{grid-column:1;grid-row:2}
+  .colR{grid-column:2;grid-row:2;padding-top:8px}
+  .diamonds{margin-top:26px}
+  .dm{width:56px;height:56px}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
@@ -117,13 +132,16 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
 </head>
 <body>
 <div class="wrap">
-  <img class="logo" src="/loyalty/logo_diamante.png" alt="">
-  <h1>Mens<b>Line</b> Diamond Club</h1>
-  <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
+  <div class="head">
+    <img class="logo" src="/loyalty/logo_diamante.png" alt="">
+    <h1>Mens<b>Line</b> Diamond Club</h1>
+    <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
+  </div>
 
   <!-- CARRUSEL DE FOTOS COMO FONDO -->
   <div id="lbg" class="lbg"></div><div class="lveil"></div>
 
+  <div class="colL">
   <!-- REGISTRO -->
   <div id="regView" class="card hidden">
     <p class="mut center" style="margin-bottom:14px">Regístrate una sola vez para ganar diamantes:</p>
@@ -146,11 +164,12 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
     </div>
     <p id="statusMsg"></p>
   </div>
+  </div>
 
+  <div class="colR">
   <p class="sec">ESCALERA DE RECOMPENSAS 💎</p>
-  <div class="card"><div class="ladder" id="ladder"></div></div>
-
-  <a id="admLink" href="/loyalty/admin.html">Acceso del negocio 🔒</a>
+  <div class="ladder" id="ladder"></div>
+  </div>
 </div>
 
 <script>
