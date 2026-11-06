@@ -77,20 +77,14 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
 .reward h2{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.18rem;letter-spacing:.03em}
 .reward code{display:block;font-size:2.05rem;letter-spacing:.34em;color:#fff;margin:12px 0;font-family:'Courier New',monospace;text-shadow:0 2px 10px #daa64e66}
 
-/* ══ CARRUSEL DE FOTOS DEL STUDIO ══ */
-.car{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--goldd);
-     box-shadow:0 12px 34px #0009,inset 0 1px 0 #ffffff0f}
-.car img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;animation:fade .55s ease}
-@keyframes fade{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
-.car .dim{position:absolute;inset:0;background:linear-gradient(0deg,rgba(26,15,6,.82) 0%,rgba(26,15,6,0) 38%);pointer-events:none}
-.car .tag{position:absolute;left:14px;bottom:10px;font-family:var(--serif);color:var(--goldl);font-size:.95rem;letter-spacing:.04em;text-shadow:0 2px 8px #000}
-.car .dots{position:absolute;right:12px;bottom:14px;display:flex;gap:7px}
-.car .dots i{width:7px;height:7px;border-radius:50%;background:#ffffff40;transition:transform .25s,background .25s}
-.car .dots i.on{background:var(--goldl);transform:scale(1.35);box-shadow:0 0 8px var(--gold)}
-.car::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;pointer-events:none;
-  background:linear-gradient(130deg,var(--goldd),var(--gold) 30%,var(--stroke) 48%,var(--gold) 66%,var(--goldd));
-  background-size:260% 260%;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-  -webkit-mask-composite:xor;mask-composite:exclude;animation:border-sheen 8s linear infinite;opacity:.75}
+/* ══ CARRUSEL DE FOTOS: ahora es el FONDO de toda la página ══ */
+.lbg{position:fixed;inset:0;z-index:-2}
+.lbg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%;
+  opacity:0;transition:opacity 1.2s ease}
+.lbg img.on{opacity:1;animation:kb 5.2s linear forwards}
+@keyframes kb{from{transform:scale(1.04)}to{transform:scale(1.12)}}
+.lveil{position:fixed;inset:0;z-index:-1;
+  background:linear-gradient(180deg,rgba(20,10,2,.72) 0%,rgba(20,10,2,.42) 30%,rgba(20,10,2,.5) 65%,rgba(10,5,1,.9) 100%)}
 
 /* ══ ESCALERA DE RECOMPENSAS POR DIAMANTE ══ */
 .ladder{display:flex;flex-direction:column;gap:10px;margin-top:6px}
@@ -127,8 +121,8 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   <h1>Mens<b>Line</b> Diamond Club</h1>
   <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
 
-  <!-- CARRUSEL DE FOTOS -->
-  <div id="car" class="car"></div>
+  <!-- CARRUSEL DE FOTOS COMO FONDO -->
+  <div id="lbg" class="lbg"></div><div class="lveil"></div>
 
   <!-- REGISTRO -->
   <div id="regView" class="card hidden">
@@ -177,7 +171,8 @@ const REWARDS = [
   {n:4, t:"Descarga muscular"},
   {n:5, t:"Combo completo"}
 ];
-/* ══ CARRUSEL: fotos pro del studio, pasan de una en una cada 3.5 s ══ */
+/* ══ CARRUSEL: fotos pro del studio pasan de una en una como FONDO (4.2 s) ══ */
+/* ══ ESCALERA: qué recompensa toca en cada diamante ══ */
 const PHOTOS = [
   {src:"../assets/web/foto1.jpg", tag:"Barbería privada"},
   {src:"../assets/web/foto2.jpg", tag:"Fisioterapia"},
@@ -187,12 +182,17 @@ const PHOTOS = [
   {src:"../assets/web/foto6.jpg", tag:"MEN'S LINE Studio"}
 ];
 let picIdx = 0;
+const lbg = document.getElementById("lbg"), bgImgs = [];
+PHOTOS.forEach(p => { const im = new Image(); im.src = p.src; im.alt = ""; lbg.appendChild(im); bgImgs.push(im); });
 function tick(){
-  const p = PHOTOS[picIdx = (picIdx+1) % PHOTOS.length];
-  $("car").innerHTML = `<img src="${p.src}" alt=""><div class="dim"></div><div class="tag">${p.tag}</div>
-    <div class="dots">${PHOTOS.map((_,i)=>`<i class="${i===picIdx?'on':''}"></i>`).join("")}</div>`;
+  bgImgs.forEach(im => im.classList.remove("on"));
+  picIdx = (picIdx + 1) % bgImgs.length;
+  bgImgs[picIdx].classList.add("on");
 }
-tick(); setInterval(tick, 3500);
+bgImgs[0].addEventListener("load", () => { picIdx = 0; tick(); }, {once:true});
+if (bgImgs[0].complete) tick();
+setTimeout(() => { if (!bgImgs.some(im => im.classList.contains("on"))) tick(); }, 2500);
+setInterval(tick, 4200);
 /* ══ ESCALERA: qué recompensa toca en cada diamante ══ */
 function drawLadder(stamps){
   const el = $("ladder"); if (!el) return;
