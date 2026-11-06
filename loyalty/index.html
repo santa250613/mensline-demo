@@ -273,6 +273,7 @@ setInterval(live, 4000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) live(); });
 
 async function boot(){
+  drawLadder(0); // la escalera se ve desde un inicio, con o sin carnet
   const ph = localStorage.getItem("ml_self");
   if (!ph){ $("regView").classList.remove("hidden"); return; }
   const s = await api("/status?phone=" + ph);
