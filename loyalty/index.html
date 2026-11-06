@@ -18,11 +18,9 @@
   --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,-apple-system,sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:var(--sans)}
+html,body{overflow-x:hidden;max-width:100%}
 body{
-  background:
-    radial-gradient(120% 80% at 50% -10%, #35230f 0%, rgba(53,35,15,0) 55%),
-    linear-gradient(180deg,var(--bg2),var(--bg) 60%);
-  background-attachment:fixed;color:var(--txt);min-height:100vh;
+  background:var(--bg);color:var(--txt);min-height:100vh;
   display:flex;flex-direction:column;align-items:center;padding:28px 16px calc(28px + env(safe-area-inset-bottom));
   -webkit-font-smoothing:antialiased;
 }
@@ -33,19 +31,16 @@ h1{font-family:var(--serif);font-weight:600;font-size:1.72rem;line-height:1.1;le
    color:var(--goldl);text-align:center;
    background:linear-gradient(180deg,#f6dca0,var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 h1 b{font-weight:700;-webkit-text-fill-color:#fff;color:#fff}
-.sub{color:var(--mut);font-size:.9rem;line-height:1.5;text-align:center;letter-spacing:.01em}
+.sub{color:#e9e2d2;font-size:.9rem;line-height:1.5;text-align:center;letter-spacing:.01em;text-shadow:0 1px 8px rgba(0,0,0,.9)}
+.logo,h1{filter:drop-shadow(0 2px 14px rgba(0,0,0,.75))}
 
-/* --- Tarjeta con borde dorado animado y esquinas 24px --- */
-.card{position:relative;background:linear-gradient(180deg,#3a2514,#2a1a0e);border:0;border-radius:24px;
-      padding:24px;box-shadow:0 14px 40px #0009, inset 0 1px 0 #ffffff14;isolation:isolate}
-.card::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.5px;pointer-events:none;
-   background:linear-gradient(130deg,var(--goldd) 0%,var(--gold) 25%,var(--stroke) 42%,var(--gold) 60%,var(--goldd) 100%);
-   background-size:260% 260%;
-   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
-   -webkit-mask-composite:xor;mask-composite:exclude;
-   animation:border-sheen 7s linear infinite;opacity:.9}
-@keyframes border-sheen{0%{background-position:0% 50%}100%{background-position:260% 50%}}
-.card>*{position:relative;z-index:1}
+/* --- Tarjeta GLASS (mismo look que los botones del linktree): casi transparente,
+       borde dorado fino que se ilumina al hover, blur ligero → se ve el carrusel --- */
+.card{position:relative;background:rgba(10,7,3,.28);border:1px solid rgba(232,184,86,.38);border-radius:20px;
+      padding:24px 22px;box-shadow:0 6px 22px rgba(0,0,0,.35);
+      -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);transition:border-color .25s,background .25s,box-shadow .25s}
+.card:hover,.card:focus-within{border-color:var(--goldl);background:rgba(20,14,6,.34);box-shadow:0 8px 26px rgba(0,0,0,.4),0 0 18px rgba(232,184,86,.14)}
+.card .mut{color:#d8ccb6;text-shadow:0 1px 6px rgba(0,0,0,.8)}
 
 /* --- Diamantes --- */
 .diamonds{display:flex;justify-content:center;flex-wrap:wrap;gap:12px;margin:20px 0 12px}
@@ -60,25 +55,28 @@ h1 b{font-weight:700;-webkit-text-fill-color:#fff;color:#fff}
 @keyframes glow{0%,100%{filter:drop-shadow(0 0 4px #daa64e77)}50%{filter:drop-shadow(0 0 14px var(--goldl)) drop-shadow(0 0 3px var(--stroke))}}
 
 .prog{font-family:var(--serif);font-weight:600;font-size:1.22rem;color:var(--goldl);text-align:center;letter-spacing:.02em}
-.bar{height:8px;background:#1c1108;border-radius:99px;overflow:hidden;margin-top:14px;box-shadow:inset 0 1px 2px #0008}
+.bar{height:6px;background:rgba(255,255,255,.08);border:1px solid rgba(232,184,86,.22);border-radius:99px;overflow:hidden;margin-top:14px}
 .bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold),var(--goldl),var(--stroke));transition:width .6s cubic-bezier(.22,1,.36,1)}
 
 /* --- Formularios --- */
-input{width:100%;padding:14px 16px;border-radius:14px;border:1px solid #5b3d1e;background:#1c1108;color:var(--txt);font-size:1rem;margin-bottom:12px;transition:border-color .25s,box-shadow .25s}
-input::placeholder{color:#8a7555}
-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px #daa64e2e}
+/* inputs estilo underline: sin fondo, solo línea dorada inferior + texto claro */
+input{width:100%;padding:12px 2px;border:0;border-bottom:1px solid rgba(232,184,86,.45);border-radius:0;background:transparent;
+  color:#fff;font-size:1rem;margin-bottom:18px;transition:border-color .25s,box-shadow .25s;-webkit-appearance:none;appearance:none}
+input::placeholder{color:rgba(233,226,210,.6)}
+input:focus{outline:none;border-bottom-color:var(--goldl);box-shadow:0 1px 0 0 var(--goldl)}
+input:-webkit-autofill{-webkit-text-fill-color:#fff;transition:background-color 9999s ease 0s}
 button{width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(135deg,#b8862f,var(--gold) 45%,var(--goldl));color:#2a1a0b;font-family:var(--sans);font-weight:700;font-size:1rem;letter-spacing:.04em;cursor:pointer;box-shadow:0 8px 20px #daa64e33;transition:transform .15s,box-shadow .25s,filter .25s}
 button:hover{filter:brightness(1.05);box-shadow:0 10px 26px #daa64e4d}
 button:active{transform:scale(.97)}
 button:disabled{opacity:.5;cursor:wait;filter:none}
 
 /* --- Recompensa --- */
-.reward{text-align:center;padding:20px;border:1px solid var(--gold);border-radius:18px;background:radial-gradient(130% 100% at 50% 0,#3a2410,#241607);margin-top:10px;box-shadow:0 0 24px #daa64e2b;animation:rise .5s ease both}
+.reward{text-align:center;padding:20px;border:1px solid var(--goldl);border-radius:16px;background:rgba(232,184,86,.08);margin-top:16px;box-shadow:0 0 22px rgba(232,184,86,.18);animation:rise .5s ease both}
 .reward h2{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.18rem;letter-spacing:.03em}
 .reward code{display:block;font-size:2.05rem;letter-spacing:.34em;color:#fff;margin:12px 0;font-family:'Courier New',monospace;text-shadow:0 2px 10px #daa64e66}
 
 /* ══ CARRUSEL DE FOTOS: ahora es el FONDO de toda la página ══ */
-.lbg{position:fixed;inset:0;z-index:-2}
+.lbg{position:fixed;inset:0;z-index:-2;overflow:hidden;background:var(--bg)}
 .lbg img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%;
   opacity:0;transition:opacity 1.2s ease}
 .lbg img.on{opacity:1;animation:kb 5.2s linear forwards}
@@ -87,25 +85,45 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   background:linear-gradient(180deg,rgba(20,10,2,.72) 0%,rgba(20,10,2,.42) 30%,rgba(20,10,2,.5) 65%,rgba(10,5,1,.9) 100%)}
 
 /* ══ ESCALERA DE RECOMPENSAS — lista limpia, sin cajitas negras ══ */
-.ladder{display:flex;flex-direction:column;margin-top:4px}
-.step{display:flex;align-items:center;gap:14px;padding:16px 6px;border-radius:0;
-  border:0;border-bottom:1px solid rgba(218,166,78,.16);transition:background .25s}
+.ladder{display:flex;flex-direction:column;margin-top:10px}
+.step{display:flex;align-items:center;gap:16px;padding:15px 10px;border-radius:12px;
+  border:0;border-bottom:1px solid rgba(232,184,86,.16);transition:background .25s}
 .step:last-child{border-bottom:0}
-.step svg{width:36px;height:36px;flex:none}
-.step .n{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;white-space:nowrap}
-.step .t{font-size:.95rem;color:var(--txt);line-height:1.35;letter-spacing:.01em}
-.step .s2{font-size:.8rem;color:var(--mut)}
-.step.here{background:linear-gradient(90deg,rgba(218,166,78,.14),rgba(218,166,78,0))}
-.step.here .n{color:#fff;text-shadow:0 0 12px rgba(232,184,86,.5)}
-.sec{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;letter-spacing:.12em;margin-top:2px;text-align:center}
+.step>div{min-width:0}
+/* diamante de marca line-art (mismo trazo en todos los niveles) */
+.gem{width:34px;height:34px;flex:none;overflow:visible}
+.gem path{fill:none;stroke:var(--goldl);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.gem .f{stroke-width:.9}
+.step .gem{opacity:.38}                                   /* futuros: outline tenue */
+.step.done .gem{opacity:.85}                              /* ya ganados: outline firme */
+.step.done .gem .o{fill:rgba(232,184,86,.18)}
+.step.here .gem{opacity:1;animation:gemglow 2.4s ease-in-out infinite}  /* alcanzado: relleno brillante */
+.step.here .gem .o{fill:url(#mlGold);stroke:var(--stroke)}
+.step.here .gem .f{stroke:rgba(255,248,230,.75)}
+@keyframes gemglow{0%,100%{filter:drop-shadow(0 0 3px rgba(232,184,86,.5))}50%{filter:drop-shadow(0 0 11px rgba(232,184,86,.9))}}
+.step .n{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;letter-spacing:.01em;
+  line-height:1.25;text-shadow:0 1px 8px rgba(0,0,0,.85)}
+.step .n .k{color:#e9e2d2;font-weight:500;margin-right:6px;opacity:.8}
+.step .s2{font-size:.8rem;color:#cdbfa6;margin-top:3px;letter-spacing:.02em;text-shadow:0 1px 6px rgba(0,0,0,.85)}
+.step.here{background:linear-gradient(90deg,rgba(232,184,86,.14),rgba(232,184,86,0))}
+.step.here .n{color:#fff;text-shadow:0 0 12px rgba(232,184,86,.5),0 1px 8px rgba(0,0,0,.8)}
+.step.here .s2{color:var(--goldl)}
+.sec{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1rem;letter-spacing:.18em;margin-top:2px;text-align:center;
+  text-shadow:0 1px 8px rgba(0,0,0,.85);display:flex;align-items:center;gap:12px}
+.sec::before,.sec::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(232,184,86,0),rgba(232,184,86,.55))}
+.sec::after{background:linear-gradient(90deg,rgba(232,184,86,.55),rgba(232,184,86,0))}
 
 .mut{color:var(--mut);font-size:.86rem;line-height:1.5}
 .center{text-align:center}
 .hidden{display:none!important}
 #statusMsg{text-align:center;font-size:.92rem;margin-top:10px;min-height:1.2em;transition:color .3s}
-#admLink{align-self:center;color:var(--mut);font-size:.8rem;text-decoration:none;border-bottom:1px solid #5b3d1e;padding-bottom:1px;transition:color .25s,border-color .25s}
-#admLink:hover{color:var(--goldl);border-color:var(--gold)}
 
+/* ══ MÓVIL: una columna con aire ══ */
+@media (max-width:819px){
+  .wrap{gap:22px}
+  .colL,.colR{width:100%;min-width:0}
+  .colR{padding-top:4px}
+}
 @media (max-width:380px){
   h1{font-size:1.5rem}
   .dm{width:44px;height:44px}
@@ -120,8 +138,9 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   h1{font-size:2.2rem}
   .sub{font-size:1rem}
   .head{grid-column:1/3;grid-row:1}
-  .colL{grid-column:1;grid-row:2}
-  .colR{grid-column:2;grid-row:2;padding-top:8px}
+  .colL{grid-column:1;grid-row:2;min-width:0}
+  .colR{grid-column:2;grid-row:2;padding-top:8px;min-width:0}
+  .card{padding:28px 26px}
   .diamonds{margin-top:26px}
   .dm{width:56px;height:56px}
 }
@@ -131,15 +150,18 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
 </style>
 </head>
 <body>
+<!-- CARRUSEL DE FOTOS COMO FONDO (fuera de .wrap: su animación no debe afectar al position:fixed) -->
+<div id="lbg" class="lbg"></div><div class="lveil"></div>
+<!-- degradado dorado compartido por los diamantes de la escalera -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="mlGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f6dca0"/><stop offset=".5" stop-color="#e8b856"/><stop offset="1" stop-color="#b8862f"/></linearGradient>
+</defs></svg>
 <div class="wrap">
   <div class="head">
     <img class="logo" src="/loyalty/logo_diamante.png" alt="">
     <h1>Mens<b>Line</b> Diamond Club</h1>
-    <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
+    <p class="sub">Tu membresía de diamantes<br>Tu próxima cita, a un toque.</p>
   </div>
-
-  <!-- CARRUSEL DE FOTOS COMO FONDO -->
-  <div id="lbg" class="lbg"></div><div class="lveil"></div>
 
   <div class="colL">
   <!-- REGISTRO -->
@@ -158,7 +180,7 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
     <p class="prog" id="prog"></p>
     <div class="bar"><i id="barFill" style="width:0%"></i></div>
     <div id="rewardBox" class="reward hidden">
-      <h2>💎 ¡RECOMPENSA LISTA!</h2>
+      <h2>¡RECOMPENSA LISTA!</h2>
       <code id="rewardCode"></code>
       <p class="mut">Preséntale este código en recepción. El staff la valida y empiezas tu nuevo ciclo.</p>
     </div>
@@ -167,7 +189,7 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   </div>
 
   <div class="colR">
-  <p class="sec">ESCALERA DE RECOMPENSAS 💎</p>
+  <p class="sec">ESCALERA DE RECOMPENSAS</p>
   <div class="ladder" id="ladder"></div>
   </div>
 </div>
@@ -213,14 +235,19 @@ if (bgImgs[0].complete) tick();
 setTimeout(() => { if (!bgImgs.some(im => im.classList.contains("on"))) tick(); }, 2500);
 setInterval(tick, 4200);
 /* ══ ESCALERA: qué recompensa toca en cada diamante ══ */
+/* diamante de marca line-art: .o = silueta, .f = facetas */
+const GEM = `<svg class="gem" viewBox="0 0 64 64" aria-hidden="true">
+  <path class="o" d="M21 12H43L54 25L32 55L10 25Z"/>
+  <path class="f" d="M10 25H54M21 12L26 25L32 55L38 25L43 12M26 25L32 12L38 25"/>
+</svg>`;
 function drawLadder(stamps){
   const el = $("ladder"); if (!el) return;
   el.innerHTML = REWARDS.map(r=>{
     const done = r.n <= stamps, here = r.n === stamps + 1;
-    return `<div class="step ${here?'here':''}">
-      <svg viewBox="0 0 64 64">${DM(done||here)}</svg>
-      <div><div class="n">💎 ${r.n} · ${r.t}</div>
-      <div class="s2">${done ? "Recompensa disponible 🎁" : here ? "Tu próximo diamante" : "Por referir a " + r.n + (r.n===1 ? " amigo" : " amigos")}</div></div>
+    return `<div class="step ${here?'here':''} ${done?'done':''}">
+      ${GEM}
+      <div><div class="n"><span class="k">${r.n}</span>${r.t}</div>
+      <div class="s2">${done ? "Recompensa disponible" : here ? "Tu próximo diamante" : "Por referir a " + r.n + (r.n===1 ? " amigo" : " amigos")}</div></div>
     </div>`;
   }).join("");
 }
