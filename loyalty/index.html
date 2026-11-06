@@ -144,6 +144,11 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   .diamonds{margin-top:26px}
   .dm{width:56px;height:56px}
 }
+@media (min-width:820px){
+  .lbg img{object-position:center center}
+  .lbg img.on{animation-name:kbw;animation-duration:6.5s}
+}
+@keyframes kbw{from{transform:scale(1)}to{transform:scale(1.07)}}
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
 }
