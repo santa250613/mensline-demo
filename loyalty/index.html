@@ -77,6 +77,32 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
 .reward h2{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.18rem;letter-spacing:.03em}
 .reward code{display:block;font-size:2.05rem;letter-spacing:.34em;color:#fff;margin:12px 0;font-family:'Courier New',monospace;text-shadow:0 2px 10px #daa64e66}
 
+/* ══ CARRUSEL DE FOTOS DEL STUDIO ══ */
+.car{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--goldd);
+     box-shadow:0 12px 34px #0009,inset 0 1px 0 #ffffff0f}
+.car img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover;animation:fade .55s ease}
+@keyframes fade{from{opacity:0;transform:scale(1.03)}to{opacity:1;transform:none}}
+.car .dim{position:absolute;inset:0;background:linear-gradient(0deg,rgba(26,15,6,.82) 0%,rgba(26,15,6,0) 38%);pointer-events:none}
+.car .tag{position:absolute;left:14px;bottom:10px;font-family:var(--serif);color:var(--goldl);font-size:.95rem;letter-spacing:.04em;text-shadow:0 2px 8px #000}
+.car .dots{position:absolute;right:12px;bottom:14px;display:flex;gap:7px}
+.car .dots i{width:7px;height:7px;border-radius:50%;background:#ffffff40;transition:transform .25s,background .25s}
+.car .dots i.on{background:var(--goldl);transform:scale(1.35);box-shadow:0 0 8px var(--gold)}
+.car::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.2px;pointer-events:none;
+  background:linear-gradient(130deg,var(--goldd),var(--gold) 30%,var(--stroke) 48%,var(--gold) 66%,var(--goldd));
+  background-size:260% 260%;-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask-composite:exclude;animation:border-sheen 8s linear infinite;opacity:.75}
+
+/* ══ ESCALERA DE RECOMPENSAS POR DIAMANTE ══ */
+.ladder{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.step{display:flex;align-items:center;gap:13px;padding:13px 15px;border-radius:16px;
+  border:1px solid rgba(218,166,78,.22);background:linear-gradient(120deg,rgba(58,37,20,.5),rgba(34,20,9,.5))}
+.step svg{width:34px;height:34px;flex:none}
+.step .n{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.02rem;white-space:nowrap}
+.step .t{font-size:.92rem;color:var(--txt);line-height:1.35}
+.step .s2{font-size:.78rem;color:var(--mut)}
+.step.here{border-color:var(--gold);box-shadow:0 0 18px rgba(218,166,78,.35);background:linear-gradient(120deg,rgba(74,47,22,.72),rgba(48,30,13,.72))}
+.sec{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.05rem;letter-spacing:.05em;margin-top:2px}
+
 .mut{color:var(--mut);font-size:.86rem;line-height:1.5}
 .center{text-align:center}
 .hidden{display:none!important}
@@ -101,6 +127,9 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   <h1>Mens<b>Line</b> Diamond Club</h1>
   <p class="sub">Tu membresía de diamantes 💎<br>Tu próxima cita, a un toque.</p>
 
+  <!-- CARRUSEL DE FOTOS -->
+  <div id="car" class="car"></div>
+
   <!-- REGISTRO -->
   <div id="regView" class="card hidden">
     <p class="mut center" style="margin-bottom:14px">Regístrate una sola vez para ganar diamantes:</p>
@@ -124,6 +153,9 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
     <p id="statusMsg"></p>
   </div>
 
+  <p class="sec">ESCALERA DE RECOMPENSAS 💎</p>
+  <div class="card"><div class="ladder" id="ladder"></div></div>
+
   <a id="admLink" href="/loyalty/admin.html">Acceso del negocio 🔒</a>
 </div>
 
@@ -137,6 +169,42 @@ const DM = earned => `<svg class="dm ${earned?'earned':''}" viewBox="0 0 64 64">
    ? '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e8b856"/><stop offset="1" stop-color="#b8862f"/></linearGradient></defs><g fill="url(#g)" stroke="#fbe7b8" stroke-width="1.5"><path d="M32 2 14 18 32 60 50 18z"/><path d="M14 18h36L32 60z" fill="#f3d38c" opacity=".55"/></g>'
    : '<g fill="none" stroke="#7a5c30" stroke-width="2.5" opacity=".85"><path d="M32 2 14 18 32 60 50 18z"/><path d="M14 18h36M32 2 18 18 32 60M32 2 46 18 32 60" stroke-width="1.4" opacity=".5"/></g>'}
 </svg>`;
+/* Cada diamante = una recompensa (el dueño las ajusta en el Excel del Drive) */
+const REWARDS = [
+  {n:1, t:"Corte gratis"},
+  {n:2, t:"Masaje"},
+  {n:3, t:"Uñas y pies"},
+  {n:4, t:"Descarga muscular"},
+  {n:5, t:"Combo completo"}
+];
+/* ══ CARRUSEL: fotos pro del studio, pasan de una en una cada 3.5 s ══ */
+const PHOTOS = [
+  {src:"/assets/web/foto1.jpg", tag:"Barbería privada"},
+  {src:"/assets/web/foto2.jpg", tag:"Fisioterapia"},
+  {src:"/assets/web/foto3.jpg", tag:"Nails"},
+  {src:"/assets/web/foto4.jpg", tag:"MEN'S LINE Studio"},
+  {src:"/assets/web/foto5.jpg", tag:"MEN'S LINE Studio"},
+  {src:"/assets/web/foto6.jpg", tag:"MEN'S LINE Studio"}
+];
+let picIdx = 0;
+function tick(){
+  const p = PHOTOS[picIdx = (picIdx+1) % PHOTOS.length];
+  $("car").innerHTML = `<img src="${p.src}" alt=""><div class="dim"></div><div class="tag">${p.tag}</div>
+    <div class="dots">${PHOTOS.map((_,i)=>`<i class="${i===picIdx?'on':''}"></i>`).join("")}</div>`;
+}
+tick(); setInterval(tick, 3500);
+/* ══ ESCALERA: qué recompensa toca en cada diamante ══ */
+function drawLadder(stamps){
+  const el = $("ladder"); if (!el) return;
+  el.innerHTML = REWARDS.map(r=>{
+    const done = r.n <= stamps, here = r.n === stamps + 1;
+    return `<div class="step ${here?'here':''}">
+      <svg viewBox="0 0 64 64">${DM(done||here)}</svg>
+      <div><div class="n">💎 ${r.n} · ${r.t}</div>
+      <div class="s2">${done ? "Recompensa disponible 🎁" : here ? "Tu próximo diamante" : "Por referir a " + r.n + (r.n===1 ? " amigo" : " amigos")}</div></div>
+    </div>`;
+  }).join("");
+}
 async function api(path, body){
   const r = await fetch(API + path, body === undefined ? {} : {
     method: "POST", headers: {"Content-Type":"application/json"}, body: JSON.stringify(body)
@@ -169,6 +237,7 @@ function render(c){
     $("prog").textContent = statusText(c);
     $("barFill").style.width = (c.stamps/GOAL*100) + "%";
   }
+  drawLadder(c.rewardPending ? GOAL : c.stamps);
 }
 function popIndex(i){ const el = document.querySelectorAll("#dmRow svg")[i]; if (el) el.classList.add("pop"); }
 
