@@ -48,7 +48,7 @@ function classDef(env) {
     hexBackgroundColor: "#170d05",
     linksModuleData: {
       uris: [
-        { uri: "https://santa250613.github.io/mensline-demo/frontend/loyalty/", description: "Abrir mi carnet", id: "carnet" }
+        { uri: "https://santa250613.github.io/mensline-demo/loyalty/", description: "Abrir mi carnet", id: "carnet" }
       ]
     }
   };
