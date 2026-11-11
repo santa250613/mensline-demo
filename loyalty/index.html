@@ -70,6 +70,30 @@ button:hover{filter:brightness(1.05);box-shadow:0 10px 26px #daa64e4d}
 button:active{transform:scale(.97)}
 button:disabled{opacity:.5;cursor:wait;filter:none}
 
+/* --- Tarjeta virtual del miembro (se genera al registrarse) --- */
+.vcard{position:relative;border-radius:18px;padding:16px 18px 15px;margin:14px 0 2px;
+  background:linear-gradient(135deg,#2b1c10 0%,#170d05 70%) , radial-gradient(120% 140% at 85% 0%, rgba(232,184,86,.25), transparent 55%);
+  background-blend-mode:screen;
+  border:1px solid rgba(232,184,86,.5);box-shadow:0 8px 24px rgba(0,0,0,.45), inset 0 1px 0 rgba(251,231,184,.25);
+  overflow:hidden;animation:rise .5s ease both}
+.vcard::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(255,248,221,.09) 46%,transparent 60%);pointer-events:none}
+.vhead{display:flex;align-items:center;gap:9px}
+.vhead img{width:26px;height:26px}
+.vhead .vt{font-family:var(--serif);font-weight:600;font-size:.83rem;letter-spacing:.16em;color:var(--goldl)}
+.vname{font-family:var(--serif);font-weight:600;font-size:1.3rem;color:#fff;margin-top:9px;text-shadow:0 1px 8px rgba(0,0,0,.7)}
+.vmeta{font-size:.72rem;color:var(--mut);letter-spacing:.08em;margin-top:2px}
+.vdiamonds{display:flex;justify-content:space-between;align-items:center;margin-top:13px}
+.vdots{display:flex;gap:6px}
+.vdots i{width:17px;height:17px;transform:rotate(45deg);border-radius:3px;border:1px solid rgba(170,128,58,.65);background:rgba(232,184,86,.06);transition:.3s}
+.vdots i.on{background:linear-gradient(135deg,#f6dca0,#e8b856 55%,#b8862f);border-color:#ffe9ae;box-shadow:0 0 9px rgba(232,184,86,.65)}
+.vdots i.on:nth-last-child(1){animation:pop .6s ease}
+.vcount{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:.95rem;letter-spacing:.05em}
+.vfoot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;border-top:1px solid rgba(232,184,86,.2);padding-top:9px}
+.vfoot .vf{font-size:.68rem;color:var(--mut);letter-spacing:.1em}
+.vcard .sheen{position:absolute;top:-40%;left:-30%;width:55%;height:180%;transform:rotate(18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,248,221,.07),transparent);animation:sheen 4.5s ease-in-out infinite}
+@keyframes sheen{0%,55%,100%{left:-45%}25%{left:120%}}
+
 /* --- Recompensa --- */
 .reward{text-align:center;padding:20px;border:1px solid var(--goldl);border-radius:16px;background:rgba(232,184,86,.08);margin-top:16px;box-shadow:0 0 22px rgba(232,184,86,.18);animation:rise .5s ease both}
 .reward h2{font-family:var(--serif);font-weight:600;color:var(--goldl);font-size:1.18rem;letter-spacing:.03em}
@@ -184,6 +208,14 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
   <!-- CARNET -->
   <div id="stView" class="card hidden">
     <p class="mut center" id="hello"></p>
+    <div class="vcard hidden" id="vcard">
+      <div class="sheen"></div>
+      <div class="vhead"><img src="/loyalty/logo_diamante.png" alt=""><span class="vt">DIAMOND CLUB</span></div>
+      <div class="vname" id="vname"></div>
+      <div class="vmeta" id="vmeta"></div>
+      <div class="vdiamonds"><span class="vdots" id="vdots"></span><span class="vcount" id="vcount"></span></div>
+      <div class="vfoot"><span class="vf">MEMBRESÍA VIRTUAL</span><span class="vf" id="vcyc"></span></div>
+    </div>
     <div class="diamonds" id="dmRow"></div>
     <p class="prog" id="prog"></p>
     <div class="bar"><i id="barFill" style="width:0%"></i></div>
@@ -297,9 +329,20 @@ function statusText(c){
   if (c.rewardPending) return "CICLO COMPLETO 💎";
   return `${c.stamps} de ${GOAL} diamantes`;
 }
+function renderVcard(c){
+  const v = $("vcard");
+  $("vname").textContent = c.name;
+  $("vmeta").textContent = "MEMBRESÍA Nº " + String(c.phone).slice(-4);
+  $("vcyc").textContent = "CICLO " + ((Number(c.cycles)||0)+1);
+  const dots = Array.from({length:GOAL},(_,i)=>`<i class="${(c.rewardPending?GOAL:c.stamps)>i?'on':''}"></i>`).join("");
+  if ($("vdots").innerHTML !== dots) $("vdots").innerHTML = dots;
+  $("vcount").textContent = (c.rewardPending ? GOAL : c.stamps) + " / " + GOAL;
+  v.classList.remove("hidden");
+}
 function render(c){
   $("regView").classList.add("hidden");
   $("stView").classList.remove("hidden");
+  renderVcard(c);
   $("hello").textContent = `Hola, ${c.name} · Membresía #${String(c.phone).slice(-4)}`;
   $("statusMsg").style.color = "#b39b78";
   if (c.rewardPending){
