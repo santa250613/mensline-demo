@@ -214,7 +214,7 @@ button:disabled{opacity:.5;cursor:wait;filter:none}
       <div class="vname" id="vname"></div>
       <div class="vmeta" id="vmeta"></div>
       <div class="vdiamonds"><span class="vdots" id="vdots"></span><span class="vcount" id="vcount"></span></div>
-      <div class="vfoot"><span class="vf">MEMBRESÍA VIRTUAL</span><span class="vf" id="vcyc"></span></div>
+      <div class="vfoot"><span class="vf">MEMBRESÍA VIRTUAL</span><span class="vf" id="vcyc"></span></div><button id="vcWallet" onclick="saveWallet(this)" style="display:none;margin:-2px 12px 14px;padding:10px 12px;border-radius:12px;border:1px solid rgba(232,184,86,.55);background:linear-gradient(180deg,#3a2512,#241505);color:#e8b856;font-weight:700;letter-spacing:.08em;font-size:.72rem;width:calc(100% - 24px)">⬇ GUARDAR EN GOOGLE WALLET</button>
     </div>
     <div class="diamonds" id="dmRow"></div>
     <p class="prog" id="prog"></p>
@@ -338,6 +338,27 @@ function renderVcard(c){
   if ($("vdots").innerHTML !== dots) $("vdots").innerHTML = dots;
   $("vcount").textContent = (c.rewardPending ? GOAL : c.stamps) + " / " + GOAL;
   v.classList.remove("hidden");
+  walletCheck(c);
+}
+/* Pase real en Google Wallet: se consulta una sola vez por cliente */
+const walletState = {};
+async function walletCheck(c){
+  if (walletState[c.phone] !== undefined) { $("vcWallet").style.display = walletState[c.phone] ? "block" : "none"; return; }
+  walletState[c.phone] = false;
+  try {
+    const r = await (await fetch(API + "/wallet/save", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({phone:c.phone}) })).json();
+    walletState[c.phone] = !!r.ok && !!r.url;
+  } catch(e){}
+  $("vcWallet").style.display = walletState[c.phone] ? "block" : "none";
+}
+async function saveWallet(btn){
+  btn.disabled = true;
+  try {
+    const r = await (await fetch(API + "/wallet/save", { method:"POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({phone:ME.phone}) })).json();
+    if (r.ok && r.url) { location.href = r.url; return; }
+    btn.textContent = "WALLET AÚN NO CONFIGURADO ⚙";
+  } catch(e){ btn.textContent = "ERROR, INTENTA DE NUEVO"; }
+  setTimeout(()=>{ btn.disabled = false; btn.textContent = "⬇ GUARDAR EN GOOGLE WALLET"; }, 2500);
 }
 function render(c){
   $("regView").classList.add("hidden");

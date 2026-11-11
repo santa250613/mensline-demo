@@ -14,6 +14,8 @@
  *  POST /wipe     {pin}                → borrar TODOS los clientes (demo)
  */
 const GOAL = 5;
+import wallet from "./wallet.js";
+const wIf = async (env, c, ctx) => { if (!wallet.on(env)) return; try { ctx.waitUntil(wallet.sync(env, c)); } catch (e) { } };
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
@@ -42,7 +44,7 @@ async function setReward(env, c) {
 }
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env, ctx) {
     if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
     const url = new URL(req.url);
 
@@ -51,9 +53,12 @@ export default {
       const p = clean(phone);
       if (!name || p.length < 7) return J({ ok: false, err: "Datos incompletos" });
       const cur = await getClient(env, p);
-      if (cur) { cur.name = String(name).slice(0, 30); await env.LOY_KV.put("client:" + p, JSON.stringify(cur)); return J({ ok: true, client: pub(cur), existing: true }); }
+      if (cur) { cur.name = String(name).slice(0, 30);      await env.LOY_KV.put("client:" + p, JSON.stringify(cur));
+      ctx.waitUntil(wIf(env, cur, ctx));
+      return J({ ok: true, client: pub(cur), existing: true }); }
       const c = { phone: p, name: String(name).slice(0, 30), stamps: 0, cycles: 0, rewardPending: false, rewardCode: null, lastVisit: "", created: Date.now() };
       await env.LOY_KV.put("client:" + p, JSON.stringify(c));
+      ctx.waitUntil(wIf(env, c, ctx));
       return J({ ok: true, client: pub(c) });
     }
 
@@ -69,11 +74,22 @@ export default {
         await setReward(env, c);
         c.lastVisit = today();
         await env.LOY_KV.put("client:" + p, JSON.stringify(c));
+        ctx.waitUntil(wIf(env, c, ctx));
         return J({ ok: true, added: true, reward: true, client: pub(c) });
       }
       c.lastVisit = today();
       await env.LOY_KV.put("client:" + p, JSON.stringify(c));
+      ctx.waitUntil(wIf(env, c, ctx));
       return J({ ok: true, added: true, client: pub(c) });
+    }
+
+    if (url.pathname === "/wallet/save" && req.method === "POST") {
+      const { phone } = await req.json();
+      const c = await getClient(env, clean(phone));
+      if (!c) return J({ ok: false, err: "not_registered" });
+      if (!wallet.on(env)) return J({ ok: false, why: "off" });
+      try { const u = await wallet.saveUrl(env, c); return u ? J({ ok: true, url: u }) : J({ ok: false, why: "error" }); }
+      catch (e) { return J({ ok: false, why: "error", err: String(e.message || e) }); }
     }
 
     if (url.pathname === "/status" && req.method === "GET") {
@@ -114,6 +130,7 @@ export default {
       c.rewardPending = false; c.rewardCode = null; c.stamps = 0; c.lastVisit = "";
       c.cycles = (c.cycles || 0) + 1;
       await env.LOY_KV.put("client:" + p, JSON.stringify(c));
+      ctx.waitUntil(wIf(env, c, ctx));
       return J({ ok: true, client: pub(c) });
     }
 
